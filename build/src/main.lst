@@ -1,0 +1,2057 @@
+GAS LISTING /tmp/ccggYc3n.s 			page 1
+
+
+   1              		.file	"main.cpp"
+   2              		.option pic
+   3              		.option norelax
+   4              		.text
+   5              	.Ltext0:
+   6              		.section	.rodata.str1.8,"aMS",@progbits,1
+   7              		.align	3
+   8              	.LC0:
+   9 0000 3E3E3E20 		.string	">>> Nit 1 je uspesno pokrenuta!\n"
+   9      4E697420 
+   9      31206A65 
+   9      20757370 
+   9      65736E6F 
+  10 0021 00000000 		.align	3
+  10      000000
+  11              	.LC1:
+  12 0028 4E697420 		.string	"Nit 1 radi... iteracija: \n"
+  12      31207261 
+  12      64692E2E 
+  12      2E206974 
+  12      65726163 
+  13 0043 00000000 		.align	3
+  13      00
+  14              	.LC2:
+  15 0048 3E3E3E20 		.string	">>> Nit 1 zavrsila rad i egzodira!\n"
+  15      4E697420 
+  15      31207A61 
+  15      76727369 
+  15      6C612072 
+  16              		.text
+  17              		.align	2
+  18              		.globl	_Z16kod_za_nit_jedanPv
+  20              	_Z16kod_za_nit_jedanPv:
+  21              	.LFB57:
+  22              		.file 1 "src/main.cpp"
+   1:src/main.cpp  **** //
+   2:src/main.cpp  **** // Created by marko on 20.4.22..
+   3:src/main.cpp  **** //
+   4:src/main.cpp  **** 
+   5:src/main.cpp  **** #include "../h/tcb.hpp"
+   6:src/main.cpp  **** 
+   7:src/main.cpp  **** #include "../test/printing.hpp"
+   8:src/main.cpp  **** #include "../h/riscv.hpp"
+   9:src/main.cpp  **** #include "../lib/console.h"
+  10:src/main.cpp  **** 
+  11:src/main.cpp  **** 
+  12:src/main.cpp  **** extern void userMain();
+  13:src/main.cpp  **** struct TestObjekat {
+  14:src/main.cpp  ****     int id;
+  15:src/main.cpp  ****     uint64 vrednosti[3];
+  16:src/main.cpp  ****     //Konstruktor: Proveravamo da li 'new' ispravno alocira i inicijalizuje
+  17:src/main.cpp  ****     TestObjekat(int pokrenutId) : id(pokrenutId) {
+  18:src/main.cpp  ****         vrednosti[0] = 0xDEEB;
+  19:src/main.cpp  ****         vrednosti[1] = 0x2026; // Trenutna godina za test :)
+  20:src/main.cpp  ****         vrednosti[2] = 0xBEEF;
+  21:src/main.cpp  ****     }
+  22:src/main.cpp  **** 
+GAS LISTING /tmp/ccggYc3n.s 			page 2
+
+
+  23:src/main.cpp  ****     // Destruktor: Proveravamo da li 'delete' ispravno čisti objekat
+  24:src/main.cpp  ****     ~TestObjekat() {
+  25:src/main.cpp  ****         id = 0;
+  26:src/main.cpp  ****     }
+  27:src/main.cpp  **** };
+  28:src/main.cpp  **** void pokreni_testove_alokacije() {
+  29:src/main.cpp  ****     // =============================================================
+  30:src/main.cpp  ****     // TEST 1: Osnovni 'new' i 'delete' za primitivne tipove
+  31:src/main.cpp  ****     // =============================================================
+  32:src/main.cpp  ****     int* p1 = new int(123);
+  33:src/main.cpp  **** 
+  34:src/main.cpp  ****     if (p1 == nullptr) {
+  35:src/main.cpp  ****         printString("TEST 1 PAO: Alokator je vratio nullptr!\n");
+  36:src/main.cpp  ****         return;
+  37:src/main.cpp  ****     }
+  38:src/main.cpp  **** 
+  39:src/main.cpp  ****     if (*p1 != 123) {
+  40:src/main.cpp  ****         printString("TEST 1 PAO: Vrednost u memoriji nije ispravno upisana!\n");
+  41:src/main.cpp  ****         delete p1;
+  42:src/main.cpp  ****         return;
+  43:src/main.cpp  ****     }
+  44:src/main.cpp  **** 
+  45:src/main.cpp  ****     delete p1;  //Ovde proveravaš tvoj free/delete
+  46:src/main.cpp  ****     printString("TEST 1 PROŠAO: Osnovni new/delete radi.\n");
+  47:src/main.cpp  **** 
+  48:src/main.cpp  **** 
+  49:src/main.cpp  ****     // =============================================================
+  50:src/main.cpp  ****     // TEST 2: Alokacija objekta (Provera poziva konstruktora)
+  51:src/main.cpp  ****     // =============================================================
+  52:src/main.cpp  ****     TestObjekat* mojObj = new TestObjekat(777);
+  53:src/main.cpp  **** 
+  54:src/main.cpp  ****     if (mojObj == nullptr) {
+  55:src/main.cpp  ****         printString("TEST 2 PAO: Neuspešna alokacija strukture/objekta!\n");
+  56:src/main.cpp  ****         return;
+  57:src/main.cpp  ****     }
+  58:src/main.cpp  **** 
+  59:src/main.cpp  ****     // Provera da li su polja ispravno inicijalizovana kroz konstruktor
+  60:src/main.cpp  ****     if (mojObj->id != 777 || mojObj->vrednosti[2] != 0xBEEF) {
+  61:src/main.cpp  ****         printString("TEST 2 PAO: Konstruktor nije pozvan ili su podaci korumpirani!\n");
+  62:src/main.cpp  ****         delete mojObj;
+  63:src/main.cpp  ****         return;
+  64:src/main.cpp  ****     }
+  65:src/main.cpp  **** 
+  66:src/main.cpp  ****     delete mojObj;
+  67:src/main.cpp  ****     printString("TEST 2 PROŠAO: Konstruktor se uspešno izvršava preko 'new'.\n");
+  68:src/main.cpp  **** 
+  69:src/main.cpp  **** 
+  70:src/main.cpp  ****     // =============================================================
+  71:src/main.cpp  ****     // TEST 3: Alokacija niza objekata (new[] i delete[])
+  72:src/main.cpp  ****     // =============================================================
+  73:src/main.cpp  ****     const int velicina_niza = 10;
+  74:src/main.cpp  ****     int* niz = new int[velicina_niza];
+  75:src/main.cpp  **** 
+  76:src/main.cpp  ****     if (niz == nullptr) {
+  77:src/main.cpp  ****         printString("TEST 3 PAO: 'new[]' je vratio nullptr za niz!\n");
+  78:src/main.cpp  ****         return;
+  79:src/main.cpp  ****     }
+GAS LISTING /tmp/ccggYc3n.s 			page 3
+
+
+  80:src/main.cpp  **** 
+  81:src/main.cpp  ****     // Upisujemo podatke kroz ceo opseg niza (provera granica i alignment-a)
+  82:src/main.cpp  ****     for (int i = 0; i < velicina_niza; i++) {
+  83:src/main.cpp  ****         niz[i] = i * 10;
+  84:src/main.cpp  ****     }
+  85:src/main.cpp  **** 
+  86:src/main.cpp  ****     // Provera ispravnosti upisanog
+  87:src/main.cpp  ****     bool niz_validan = true;
+  88:src/main.cpp  ****     for (int i = 0; i < velicina_niza; i++) {
+  89:src/main.cpp  ****         if (niz[i] != i * 10) {
+  90:src/main.cpp  ****             niz_validan = false;
+  91:src/main.cpp  ****             break;
+  92:src/main.cpp  ****         }
+  93:src/main.cpp  ****     }
+  94:src/main.cpp  **** 
+  95:src/main.cpp  ****     delete[] niz; // Jako bitno da koristiš delete[] sa zagradama!
+  96:src/main.cpp  **** 
+  97:src/main.cpp  ****     if (!niz_validan) {
+  98:src/main.cpp  ****         printString("TEST 3 PAO: Podaci u nizu su pregaženi ili korumpirani!\n");
+  99:src/main.cpp  ****         return;
+ 100:src/main.cpp  ****     }
+ 101:src/main.cpp  ****     printString("TEST 3 PROŠAO: Alokacija i dealokacija nizova radi.\n");
+ 102:src/main.cpp  **** 
+ 103:src/main.cpp  ****     printString("--- SVI NEW/DELETE TESTOVI USPEŠNO ZAVRŠENI! ---\n");
+ 104:src/main.cpp  **** }
+ 105:src/main.cpp  **** 
+ 106:src/main.cpp  **** // Globalne promenljive za sinhronizaciju/proveru napretka
+ 107:src/main.cpp  **** volatile int brojac_nit_1 = 0;
+ 108:src/main.cpp  **** volatile int brojac_nit_2 = 0;
+ 109:src/main.cpp  **** 
+ 110:src/main.cpp  **** // Kod koji će izvršavati prva nit
+ 111:src/main.cpp  **** void kod_za_nit_jedan(void* arg) {
+  23              		.loc 1 111 34
+  24              		.cfi_startproc
+  25              	.LVL0:
+  26 0000 130101FE 		addi	sp,sp,-32
+  27              		.cfi_def_cfa_offset 32
+  28 0004 233C1100 		sd	ra,24(sp)
+  29 0008 23388100 		sd	s0,16(sp)
+  30 000c 23349100 		sd	s1,8(sp)
+  31              		.cfi_offset 1, -8
+  32              		.cfi_offset 8, -16
+  33              		.cfi_offset 9, -24
+  34 0010 13040102 		addi	s0,sp,32
+  35              		.cfi_def_cfa 8, 0
+ 112:src/main.cpp  ****     printString(">>> Nit 1 je uspesno pokrenuta!\n");
+  36              		.loc 1 112 5
+  37              		.loc 1 112 16 is_stmt 0
+  38 0014 17050000 		lla	a0,.LC0
+  38      13050500 
+  39              	.LVL1:
+  40 001c 97000000 		call	_Z11printStringPKc@plt
+  40      E7800000 
+  41              	.LVL2:
+ 113:src/main.cpp  **** 
+ 114:src/main.cpp  ****     for (int i = 0; i < 5; i++) {
+  42              		.loc 1 114 5 is_stmt 1
+GAS LISTING /tmp/ccggYc3n.s 			page 4
+
+
+  43              	.LBB15:
+  44              		.loc 1 114 14 is_stmt 0
+  45 0024 93040000 		li	s1,0
+  46              	.LVL3:
+  47              	.L3:
+  48              		.loc 1 114 23 is_stmt 1 discriminator 3
+  49 0028 93074000 		li	a5,4
+  50 002c 63C29704 		bgt	s1,a5,.L2
+ 115:src/main.cpp  ****         brojac_nit_1++;
+  51              		.loc 1 115 9 discriminator 2
+  52              		.loc 1 115 21 is_stmt 0 discriminator 2
+  53 0030 17070000 		lla	a4,.LANCHOR0
+  53      13070700 
+  54 0038 83270700 		lw	a5,0(a4)
+  55 003c 9B871700 		addiw	a5,a5,1
+  56 0040 2320F700 		sw	a5,0(a4)
+ 116:src/main.cpp  ****         printString("Nit 1 radi... iteracija: \n");
+  57              		.loc 1 116 9 is_stmt 1 discriminator 2
+  58              		.loc 1 116 20 is_stmt 0 discriminator 2
+  59 0044 17050000 		lla	a0,.LC1
+  59      13050500 
+  60 004c 97000000 		call	_Z11printStringPKc@plt
+  60      E7800000 
+  61              	.LVL4:
+ 117:src/main.cpp  ****         // Ako imaš ispis brojeva, ispiši 'i', ako ne, samo tekst
+ 118:src/main.cpp  ****         printInteger(i);
+  62              		.loc 1 118 9 is_stmt 1 discriminator 2
+  63              		.loc 1 118 21 is_stmt 0 discriminator 2
+  64 0054 13850400 		mv	a0,s1
+  65 0058 97000000 		call	_Z12printIntegerm@plt
+  65      E7800000 
+  66              	.LVL5:
+ 119:src/main.cpp  **** 
+ 120:src/main.cpp  ****         thread_dispatch();
+  67              		.loc 1 120 9 is_stmt 1 discriminator 2
+  68              		.loc 1 120 24 is_stmt 0 discriminator 2
+  69 0060 97000000 		call	_Z15thread_dispatchv@plt
+  69      E7800000 
+  70              	.LVL6:
+ 114:src/main.cpp  ****         brojac_nit_1++;
+  71              		.loc 1 114 5 is_stmt 1 discriminator 2
+  72 0068 9B841400 		addiw	s1,s1,1
+  73              	.LVL7:
+  74 006c 6FF0DFFB 		j	.L3
+  75              	.LVL8:
+  76              	.L2:
+  77              	.LBE15:
+ 121:src/main.cpp  ****     }
+ 122:src/main.cpp  **** 
+ 123:src/main.cpp  ****     printString(">>> Nit 1 zavrsila rad i egzodira!\n");
+  78              		.loc 1 123 5
+  79              		.loc 1 123 16 is_stmt 0
+  80 0070 17050000 		lla	a0,.LC2
+  80      13050500 
+  81 0078 97000000 		call	_Z11printStringPKc@plt
+  81      E7800000 
+  82              	.LVL9:
+GAS LISTING /tmp/ccggYc3n.s 			page 5
+
+
+ 124:src/main.cpp  ****     thread_exit();
+  83              		.loc 1 124 5 is_stmt 1
+  84              		.loc 1 124 16 is_stmt 0
+  85 0080 97000000 		call	_Z11thread_exitv@plt
+  85      E7800000 
+  86              	.LVL10:
+ 125:src/main.cpp  **** }
+  87              		.loc 1 125 1
+  88 0088 83308101 		ld	ra,24(sp)
+  89              		.cfi_restore 1
+  90 008c 03340101 		ld	s0,16(sp)
+  91              		.cfi_restore 8
+  92              		.cfi_def_cfa 2, 32
+  93 0090 83348100 		ld	s1,8(sp)
+  94              		.cfi_restore 9
+  95              	.LVL11:
+  96 0094 13010102 		addi	sp,sp,32
+  97              		.cfi_def_cfa_offset 0
+  98 0098 67800000 		jr	ra
+  99              		.cfi_endproc
+ 100              	.LFE57:
+ 102              		.section	.rodata.str1.8
+ 103 006c 00000000 		.align	3
+ 104              	.LC3:
+ 105 0070 3E3E3E20 		.string	">>> Nit 2 je uspesno pokrenuta!\n"
+ 105      4E697420 
+ 105      32206A65 
+ 105      20757370 
+ 105      65736E6F 
+ 106 0091 00000000 		.align	3
+ 106      000000
+ 107              	.LC4:
+ 108 0098 4E697420 		.string	"Nit 2 radi... iteracija: \n"
+ 108      32207261 
+ 108      64692E2E 
+ 108      2E206974 
+ 108      65726163 
+ 109 00b3 00000000 		.align	3
+ 109      00
+ 110              	.LC5:
+ 111 00b8 3E3E3E20 		.string	">>> Nit 2 zavrsila rad i egzodira!\n"
+ 111      4E697420 
+ 111      32207A61 
+ 111      76727369 
+ 111      6C612072 
+ 112              		.text
+ 113              		.align	2
+ 114              		.globl	_Z14kod_za_nit_dvaPv
+ 116              	_Z14kod_za_nit_dvaPv:
+ 117              	.LFB58:
+ 126:src/main.cpp  **** 
+ 127:src/main.cpp  **** // Kod koji će izvršavati druga nit
+ 128:src/main.cpp  **** void kod_za_nit_dva(void* arg) {
+ 118              		.loc 1 128 32 is_stmt 1
+ 119              		.cfi_startproc
+ 120              	.LVL12:
+ 121 009c 130101FE 		addi	sp,sp,-32
+GAS LISTING /tmp/ccggYc3n.s 			page 6
+
+
+ 122              		.cfi_def_cfa_offset 32
+ 123 00a0 233C1100 		sd	ra,24(sp)
+ 124 00a4 23388100 		sd	s0,16(sp)
+ 125 00a8 23349100 		sd	s1,8(sp)
+ 126              		.cfi_offset 1, -8
+ 127              		.cfi_offset 8, -16
+ 128              		.cfi_offset 9, -24
+ 129 00ac 13040102 		addi	s0,sp,32
+ 130              		.cfi_def_cfa 8, 0
+ 129:src/main.cpp  ****     printString(">>> Nit 2 je uspesno pokrenuta!\n");
+ 131              		.loc 1 129 5
+ 132              		.loc 1 129 16 is_stmt 0
+ 133 00b0 17050000 		lla	a0,.LC3
+ 133      13050500 
+ 134              	.LVL13:
+ 135 00b8 97000000 		call	_Z11printStringPKc@plt
+ 135      E7800000 
+ 136              	.LVL14:
+ 130:src/main.cpp  **** 
+ 131:src/main.cpp  ****     for (int i = 0; i < 5; i++) {
+ 137              		.loc 1 131 5 is_stmt 1
+ 138              	.LBB16:
+ 139              		.loc 1 131 14 is_stmt 0
+ 140 00c0 93040000 		li	s1,0
+ 141              	.LVL15:
+ 142              	.L7:
+ 143              		.loc 1 131 23 is_stmt 1 discriminator 3
+ 144 00c4 93074000 		li	a5,4
+ 145 00c8 63CC9702 		bgt	s1,a5,.L6
+ 132:src/main.cpp  ****         brojac_nit_2++;
+ 146              		.loc 1 132 9 discriminator 2
+ 147              		.loc 1 132 21 is_stmt 0 discriminator 2
+ 148 00cc 17070000 		lla	a4,.LANCHOR0
+ 148      13070700 
+ 149 00d4 83274700 		lw	a5,4(a4)
+ 150 00d8 9B871700 		addiw	a5,a5,1
+ 151 00dc 2322F700 		sw	a5,4(a4)
+ 133:src/main.cpp  ****         printString("Nit 2 radi... iteracija: \n");
+ 152              		.loc 1 133 9 is_stmt 1 discriminator 2
+ 153              		.loc 1 133 20 is_stmt 0 discriminator 2
+ 154 00e0 17050000 		lla	a0,.LC4
+ 154      13050500 
+ 155 00e8 97000000 		call	_Z11printStringPKc@plt
+ 155      E7800000 
+ 156              	.LVL16:
+ 134:src/main.cpp  **** 
+ 135:src/main.cpp  ****         thread_dispatch();
+ 157              		.loc 1 135 9 is_stmt 1 discriminator 2
+ 158              		.loc 1 135 24 is_stmt 0 discriminator 2
+ 159 00f0 97000000 		call	_Z15thread_dispatchv@plt
+ 159      E7800000 
+ 160              	.LVL17:
+ 131:src/main.cpp  ****         brojac_nit_2++;
+ 161              		.loc 1 131 5 is_stmt 1 discriminator 2
+ 162 00f8 9B841400 		addiw	s1,s1,1
+ 163              	.LVL18:
+ 164 00fc 6FF09FFC 		j	.L7
+GAS LISTING /tmp/ccggYc3n.s 			page 7
+
+
+ 165              	.LVL19:
+ 166              	.L6:
+ 167              	.LBE16:
+ 136:src/main.cpp  **** 
+ 137:src/main.cpp  ****     }
+ 138:src/main.cpp  **** 
+ 139:src/main.cpp  ****     printString(">>> Nit 2 zavrsila rad i egzodira!\n");
+ 168              		.loc 1 139 5
+ 169              		.loc 1 139 16 is_stmt 0
+ 170 0100 17050000 		lla	a0,.LC5
+ 170      13050500 
+ 171 0108 97000000 		call	_Z11printStringPKc@plt
+ 171      E7800000 
+ 172              	.LVL20:
+ 140:src/main.cpp  ****     thread_exit();
+ 173              		.loc 1 140 5 is_stmt 1
+ 174              		.loc 1 140 16 is_stmt 0
+ 175 0110 97000000 		call	_Z11thread_exitv@plt
+ 175      E7800000 
+ 176              	.LVL21:
+ 141:src/main.cpp  **** }
+ 177              		.loc 1 141 1
+ 178 0118 83308101 		ld	ra,24(sp)
+ 179              		.cfi_restore 1
+ 180 011c 03340101 		ld	s0,16(sp)
+ 181              		.cfi_restore 8
+ 182              		.cfi_def_cfa 2, 32
+ 183 0120 83348100 		ld	s1,8(sp)
+ 184              		.cfi_restore 9
+ 185              	.LVL22:
+ 186 0124 13010102 		addi	sp,sp,32
+ 187              		.cfi_def_cfa_offset 0
+ 188 0128 67800000 		jr	ra
+ 189              		.cfi_endproc
+ 190              	.LFE58:
+ 192              		.align	2
+ 193              		.globl	_Z15userMainWrapperPv
+ 195              	_Z15userMainWrapperPv:
+ 196              	.LFB60:
+ 142:src/main.cpp  **** 
+ 143:src/main.cpp  **** void pokreni_testove_niti() {
+ 144:src/main.cpp  ****     printString("\n--- POCETAK TESTA NITI ---\n");
+ 145:src/main.cpp  **** 
+ 146:src/main.cpp  ****     thread_t nit1 = nullptr;
+ 147:src/main.cpp  ****     thread_t nit2 = nullptr;
+ 148:src/main.cpp  **** 
+ 149:src/main.cpp  ****     // 1. Kreiranje prve niti
+ 150:src/main.cpp  ****     int res1 = thread_create(&nit1, kod_za_nit_jedan, nullptr);
+ 151:src/main.cpp  **** 
+ 152:src/main.cpp  ****     if (res1 < 0 || nit1 == nullptr) {
+ 153:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 1 nije uspelo!\n");
+ 154:src/main.cpp  ****         printInt(res1);
+ 155:src/main.cpp  ****         return;
+ 156:src/main.cpp  ****     }
+ 157:src/main.cpp  ****     printString("Nit 1 kreirana uspesno.\n");
+ 158:src/main.cpp  **** 
+ 159:src/main.cpp  ****     // 2. Kreiranje druge niti
+GAS LISTING /tmp/ccggYc3n.s 			page 8
+
+
+ 160:src/main.cpp  ****     int res2 = thread_create(&nit2, kod_za_nit_dva, nullptr);
+ 161:src/main.cpp  ****     if (res2 < 0 || nit2 == nullptr) {
+ 162:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 2 nije uspelo!\n");
+ 163:src/main.cpp  ****         return;
+ 164:src/main.cpp  ****     }
+ 165:src/main.cpp  ****     printString("Nit 2 kreirana uspesno.\n");
+ 166:src/main.cpp  **** 
+ 167:src/main.cpp  ****     // 3. Pokretanje raspoređivanja (da pustimo niti da rade)
+ 168:src/main.cpp  ****     printString("Glavna nit predaje kontrolu radnicima...\n");
+ 169:src/main.cpp  **** 
+ 170:src/main.cpp  ****     // Ako ti thread_join radi, otkomentariši ove dve linije:
+ 171:src/main.cpp  ****     // thread_join(nit1);
+ 172:src/main.cpp  ****     // thread_join(nit2);
+ 173:src/main.cpp  **** 
+ 174:src/main.cpp  ****     // Ako join još uvek nije spojen u kernelu, koristi ovu petlju
+ 175:src/main.cpp  ****     // koja simulira čekanje dok radnici ne završe svoje iteracije:
+ 176:src/main.cpp  ****     while (brojac_nit_1 < 5 || brojac_nit_2 < 5) {
+ 177:src/main.cpp  ****         thread_dispatch();
+ 178:src/main.cpp  ****     }
+ 179:src/main.cpp  **** 
+ 180:src/main.cpp  ****     printString("--- TEST NITI USPESNO ZAVRSEN! Glavna nit ponovo ima kontrolu. ---\n");
+ 181:src/main.cpp  **** }
+ 182:src/main.cpp  **** 
+ 183:src/main.cpp  **** 
+ 184:src/main.cpp  **** void userMainWrapper(void*) {
+ 197              		.loc 1 184 29 is_stmt 1
+ 198              		.cfi_startproc
+ 199 012c 130101FF 		addi	sp,sp,-16
+ 200              		.cfi_def_cfa_offset 16
+ 201 0130 23341100 		sd	ra,8(sp)
+ 202 0134 23308100 		sd	s0,0(sp)
+ 203              		.cfi_offset 1, -8
+ 204              		.cfi_offset 8, -16
+ 205 0138 13040101 		addi	s0,sp,16
+ 206              		.cfi_def_cfa 8, 0
+ 185:src/main.cpp  ****     userMain();
+ 207              		.loc 1 185 5
+ 208              		.loc 1 185 13 is_stmt 0
+ 209 013c 97000000 		call	_Z8userMainv@plt
+ 209      E7800000 
+ 210              	.LVL23:
+ 186:src/main.cpp  **** }
+ 211              		.loc 1 186 1
+ 212 0144 83308100 		ld	ra,8(sp)
+ 213              		.cfi_restore 1
+ 214 0148 03340100 		ld	s0,0(sp)
+ 215              		.cfi_restore 8
+ 216              		.cfi_def_cfa 2, 16
+ 217 014c 13010101 		addi	sp,sp,16
+ 218              		.cfi_def_cfa_offset 0
+ 219 0150 67800000 		jr	ra
+ 220              		.cfi_endproc
+ 221              	.LFE60:
+ 223              		.section	.rodata.str1.8
+ 224 00dc 00000000 		.align	3
+ 225              	.LC6:
+ 226 00e0 54455354 		.string	"TEST 1 PAO: Alokator je vratio nullptr!\n"
+GAS LISTING /tmp/ccggYc3n.s 			page 9
+
+
+ 226      20312050 
+ 226      414F3A20 
+ 226      416C6F6B 
+ 226      61746F72 
+ 227 0109 00000000 		.align	3
+ 227      000000
+ 228              	.LC7:
+ 229 0110 54455354 		.string	"TEST 1 PRO\305\240AO: Osnovni new/delete radi.\n"
+ 229      20312050 
+ 229      524FC5A0 
+ 229      414F3A20 
+ 229      4F736E6F 
+ 230 013a 00000000 		.align	3
+ 230      0000
+ 231              	.LC8:
+ 232 0140 54455354 		.string	"TEST 2 PAO: Neuspe\305\241na alokacija strukture/objekta!\n"
+ 232      20322050 
+ 232      414F3A20 
+ 232      4E657573 
+ 232      7065C5A1 
+ 233 0175 000000   		.align	3
+ 234              	.LC9:
+ 235 0178 54455354 		.string	"TEST 2 PRO\305\240AO: Konstruktor se uspe\305\241no izvr\305\241ava preko 'new'.\n"
+ 235      20322050 
+ 235      524FC5A0 
+ 235      414F3A20 
+ 235      4B6F6E73 
+ 236              		.align	3
+ 237              	.LC10:
+ 238 01b8 54455354 		.string	"TEST 3 PAO: 'new[]' je vratio nullptr za niz!\n"
+ 238      20332050 
+ 238      414F3A20 
+ 238      276E6577 
+ 238      5B5D2720 
+ 239 01e7 00       		.align	3
+ 240              	.LC11:
+ 241 01e8 54455354 		.string	"TEST 3 PAO: Podaci u nizu su prega\305\276eni ili korumpirani!\n"
+ 241      20332050 
+ 241      414F3A20 
+ 241      506F6461 
+ 241      63692075 
+ 242 0222 00000000 		.align	3
+ 242      0000
+ 243              	.LC12:
+ 244 0228 54455354 		.string	"TEST 3 PRO\305\240AO: Alokacija i dealokacija nizova radi.\n"
+ 244      20332050 
+ 244      524FC5A0 
+ 244      414F3A20 
+ 244      416C6F6B 
+ 245 025e 0000     		.align	3
+ 246              	.LC13:
+ 247 0260 2D2D2D20 		.string	"--- SVI NEW/DELETE TESTOVI USPE\305\240NO ZAVR\305\240ENI! ---\n"
+ 247      53564920 
+ 247      4E45572F 
+ 247      44454C45 
+ 247      54452054 
+ 248              		.text
+GAS LISTING /tmp/ccggYc3n.s 			page 10
+
+
+ 249              		.align	2
+ 250              		.globl	_Z25pokreni_testove_alokacijev
+ 252              	_Z25pokreni_testove_alokacijev:
+ 253              	.LFB56:
+  28:src/main.cpp  ****     // =============================================================
+ 254              		.loc 1 28 34 is_stmt 1
+ 255              		.cfi_startproc
+ 256 0154 130101FE 		addi	sp,sp,-32
+ 257              		.cfi_def_cfa_offset 32
+ 258 0158 233C1100 		sd	ra,24(sp)
+ 259 015c 23388100 		sd	s0,16(sp)
+ 260 0160 23349100 		sd	s1,8(sp)
+ 261              		.cfi_offset 1, -8
+ 262              		.cfi_offset 8, -16
+ 263              		.cfi_offset 9, -24
+ 264 0164 13040102 		addi	s0,sp,32
+ 265              		.cfi_def_cfa 8, 0
+  32:src/main.cpp  **** 
+ 266              		.loc 1 32 5
+  32:src/main.cpp  **** 
+ 267              		.loc 1 32 26 is_stmt 0
+ 268 0168 13054000 		li	a0,4
+ 269 016c 97000000 		call	_Znwm@plt
+ 269      E7800000 
+ 270              	.LVL24:
+ 271 0174 9307B007 		li	a5,123
+ 272 0178 2320F500 		sw	a5,0(a0)
+ 273              	.LVL25:
+  34:src/main.cpp  ****         printString("TEST 1 PAO: Alokator je vratio nullptr!\n");
+ 274              		.loc 1 34 5 is_stmt 1
+ 275 017c 6306050A 		beqz	a0,.L24
+  39:src/main.cpp  ****         printString("TEST 1 PAO: Vrednost u memoriji nije ispravno upisana!\n");
+ 276              		.loc 1 39 5 discriminator 1
+  45:src/main.cpp  ****     printString("TEST 1 PROŠAO: Osnovni new/delete radi.\n");
+ 277              		.loc 1 45 5 discriminator 1
+  45:src/main.cpp  ****     printString("TEST 1 PROŠAO: Osnovni new/delete radi.\n");
+ 278              		.loc 1 45 12 is_stmt 0 discriminator 1
+ 279 0180 97000000 		call	_ZdlPv@plt
+ 279      E7800000 
+ 280              	.LVL26:
+  46:src/main.cpp  **** 
+ 281              		.loc 1 46 5 is_stmt 1 discriminator 1
+  46:src/main.cpp  **** 
+ 282              		.loc 1 46 16 is_stmt 0 discriminator 1
+ 283 0188 17050000 		lla	a0,.LC7
+ 283      13050500 
+ 284 0190 97000000 		call	_Z11printStringPKc@plt
+ 284      E7800000 
+ 285              	.LVL27:
+  52:src/main.cpp  **** 
+ 286              		.loc 1 52 5 is_stmt 1 discriminator 1
+  52:src/main.cpp  **** 
+ 287              		.loc 1 52 46 is_stmt 0 discriminator 1
+ 288 0198 13050002 		li	a0,32
+ 289 019c 97000000 		call	_Znwm@plt
+ 289      E7800000 
+ 290              	.LVL28:
+GAS LISTING /tmp/ccggYc3n.s 			page 11
+
+
+ 291              	.LBB17:
+ 292              	.LBB18:
+  17:src/main.cpp  ****         vrednosti[0] = 0xDEEB;
+ 293              		.loc 1 17 48 discriminator 1
+ 294 01a4 93079030 		li	a5,777
+ 295 01a8 2320F500 		sw	a5,0(a0)
+  18:src/main.cpp  ****         vrednosti[1] = 0x2026; // Trenutna godina za test :)
+ 296              		.loc 1 18 9 is_stmt 1 discriminator 1
+  18:src/main.cpp  ****         vrednosti[1] = 0x2026; // Trenutna godina za test :)
+ 297              		.loc 1 18 22 is_stmt 0 discriminator 1
+ 298 01ac B7E70000 		li	a5,57344
+ 299 01b0 9387B7EE 		addi	a5,a5,-277
+ 300 01b4 2334F500 		sd	a5,8(a0)
+  19:src/main.cpp  ****         vrednosti[2] = 0xBEEF;
+ 301              		.loc 1 19 9 is_stmt 1 discriminator 1
+  19:src/main.cpp  ****         vrednosti[2] = 0xBEEF;
+ 302              		.loc 1 19 22 is_stmt 0 discriminator 1
+ 303 01b8 B7270000 		li	a5,8192
+ 304 01bc 93876702 		addi	a5,a5,38
+ 305 01c0 2338F500 		sd	a5,16(a0)
+  20:src/main.cpp  ****     }
+ 306              		.loc 1 20 9 is_stmt 1 discriminator 1
+  20:src/main.cpp  ****     }
+ 307              		.loc 1 20 22 is_stmt 0 discriminator 1
+ 308 01c4 B7C70000 		li	a5,49152
+ 309 01c8 9387F7EE 		addi	a5,a5,-273
+ 310 01cc 233CF500 		sd	a5,24(a0)
+ 311              	.LVL29:
+ 312              	.LBE18:
+ 313              	.LBE17:
+  54:src/main.cpp  ****         printString("TEST 2 PAO: Neuspešna alokacija strukture/objekta!\n");
+ 314              		.loc 1 54 5 is_stmt 1 discriminator 1
+ 315 01d0 63060506 		beqz	a0,.L25
+  60:src/main.cpp  ****         printString("TEST 2 PAO: Konstruktor nije pozvan ili su podaci korumpirani!\n");
+ 316              		.loc 1 60 5
+  66:src/main.cpp  ****     printString("TEST 2 PROŠAO: Konstruktor se uspešno izvršava preko 'new'.\n");
+ 317              		.loc 1 66 5
+ 318              	.LVL30:
+  25:src/main.cpp  ****     }
+ 319              		.loc 1 25 9
+  66:src/main.cpp  ****     printString("TEST 2 PROŠAO: Konstruktor se uspešno izvršava preko 'new'.\n");
+ 320              		.loc 1 66 12 is_stmt 0
+ 321 01d4 97000000 		call	_ZdlPv@plt
+ 321      E7800000 
+ 322              	.LVL31:
+  67:src/main.cpp  **** 
+ 323              		.loc 1 67 5 is_stmt 1
+  67:src/main.cpp  **** 
+ 324              		.loc 1 67 16 is_stmt 0
+ 325 01dc 17050000 		lla	a0,.LC9
+ 325      13050500 
+ 326 01e4 97000000 		call	_Z11printStringPKc@plt
+ 326      E7800000 
+ 327              	.LVL32:
+  73:src/main.cpp  ****     int* niz = new int[velicina_niza];
+ 328              		.loc 1 73 5 is_stmt 1
+  74:src/main.cpp  **** 
+GAS LISTING /tmp/ccggYc3n.s 			page 12
+
+
+ 329              		.loc 1 74 5
+  74:src/main.cpp  **** 
+ 330              		.loc 1 74 37 is_stmt 0
+ 331 01ec 13058002 		li	a0,40
+ 332 01f0 97000000 		call	_Znam@plt
+ 332      E7800000 
+ 333              	.LVL33:
+  76:src/main.cpp  ****         printString("TEST 3 PAO: 'new[]' je vratio nullptr za niz!\n");
+ 334              		.loc 1 76 5 is_stmt 1
+ 335 01f8 630C0504 		beqz	a0,.L26
+ 336              	.LBB19:
+  82:src/main.cpp  ****         niz[i] = i * 10;
+ 337              		.loc 1 82 14 is_stmt 0
+ 338 01fc 93070000 		li	a5,0
+ 339              	.L15:
+ 340              	.LVL34:
+  82:src/main.cpp  ****         niz[i] = i * 10;
+ 341              		.loc 1 82 23 is_stmt 1 discriminator 3
+ 342 0200 13079000 		li	a4,9
+ 343 0204 6340F706 		bgt	a5,a4,.L20
+  83:src/main.cpp  ****     }
+ 344              		.loc 1 83 9 discriminator 2
+  83:src/main.cpp  ****     }
+ 345              		.loc 1 83 14 is_stmt 0 discriminator 2
+ 346 0208 93962700 		slli	a3,a5,2
+ 347 020c B306D500 		add	a3,a0,a3
+  83:src/main.cpp  ****     }
+ 348              		.loc 1 83 20 discriminator 2
+ 349 0210 1B972700 		slliw	a4,a5,2
+ 350 0214 3B07F700 		addw	a4,a4,a5
+ 351 0218 1B171700 		slliw	a4,a4,1
+  83:src/main.cpp  ****     }
+ 352              		.loc 1 83 16 discriminator 2
+ 353 021c 23A0E600 		sw	a4,0(a3)
+  82:src/main.cpp  ****         niz[i] = i * 10;
+ 354              		.loc 1 82 5 is_stmt 1 discriminator 2
+ 355 0220 9B871700 		addiw	a5,a5,1
+ 356              	.LVL35:
+ 357 0224 6FF0DFFD 		j	.L15
+ 358              	.LVL36:
+ 359              	.L24:
+ 360              	.LBE19:
+  35:src/main.cpp  ****         return;
+ 361              		.loc 1 35 9
+  35:src/main.cpp  ****         return;
+ 362              		.loc 1 35 20 is_stmt 0
+ 363 0228 17050000 		lla	a0,.LC6
+ 363      13050500 
+ 364              	.LVL37:
+ 365 0230 97000000 		call	_Z11printStringPKc@plt
+ 365      E7800000 
+ 366              	.LVL38:
+  36:src/main.cpp  ****     }
+ 367              		.loc 1 36 9 is_stmt 1
+ 368 0238 6F00C008 		j	.L11
+ 369              	.LVL39:
+ 370              	.L25:
+GAS LISTING /tmp/ccggYc3n.s 			page 13
+
+
+  55:src/main.cpp  ****         return;
+ 371              		.loc 1 55 9
+  55:src/main.cpp  ****         return;
+ 372              		.loc 1 55 20 is_stmt 0
+ 373 023c 17050000 		lla	a0,.LC8
+ 373      13050500 
+ 374              	.LVL40:
+ 375 0244 97000000 		call	_Z11printStringPKc@plt
+ 375      E7800000 
+ 376              	.LVL41:
+  56:src/main.cpp  ****     }
+ 377              		.loc 1 56 9 is_stmt 1
+ 378 024c 6F008007 		j	.L11
+ 379              	.LVL42:
+ 380              	.L26:
+  77:src/main.cpp  ****         return;
+ 381              		.loc 1 77 9
+  77:src/main.cpp  ****         return;
+ 382              		.loc 1 77 20 is_stmt 0
+ 383 0250 17050000 		lla	a0,.LC10
+ 383      13050500 
+ 384              	.LVL43:
+ 385 0258 97000000 		call	_Z11printStringPKc@plt
+ 385      E7800000 
+ 386              	.LVL44:
+  78:src/main.cpp  ****     }
+ 387              		.loc 1 78 9 is_stmt 1
+ 388 0260 6F004006 		j	.L11
+ 389              	.LVL45:
+ 390              	.L20:
+ 391              	.LBB20:
+  88:src/main.cpp  ****         if (niz[i] != i * 10) {
+ 392              		.loc 1 88 14 is_stmt 0
+ 393 0264 93070000 		li	a5,0
+ 394              	.LVL46:
+ 395              	.L16:
+  88:src/main.cpp  ****         if (niz[i] != i * 10) {
+ 396              		.loc 1 88 23 is_stmt 1 discriminator 1
+ 397 0268 13079000 		li	a4,9
+ 398 026c 6344F702 		bgt	a5,a4,.L21
+  89:src/main.cpp  ****             niz_validan = false;
+ 399              		.loc 1 89 9
+  89:src/main.cpp  ****             niz_validan = false;
+ 400              		.loc 1 89 18 is_stmt 0
+ 401 0270 13972700 		slli	a4,a5,2
+ 402 0274 3307E500 		add	a4,a0,a4
+ 403 0278 83260700 		lw	a3,0(a4)
+  89:src/main.cpp  ****             niz_validan = false;
+ 404              		.loc 1 89 25
+ 405 027c 1B972700 		slliw	a4,a5,2
+ 406 0280 3B07F700 		addw	a4,a4,a5
+ 407 0284 1B171700 		slliw	a4,a4,1
+  89:src/main.cpp  ****             niz_validan = false;
+ 408              		.loc 1 89 9
+ 409 0288 6398E604 		bne	a3,a4,.L22
+  88:src/main.cpp  ****         if (niz[i] != i * 10) {
+ 410              		.loc 1 88 5 is_stmt 1 discriminator 2
+GAS LISTING /tmp/ccggYc3n.s 			page 14
+
+
+ 411 028c 9B871700 		addiw	a5,a5,1
+ 412              	.LVL47:
+ 413 0290 6FF09FFD 		j	.L16
+ 414              	.LVL48:
+ 415              	.L21:
+ 416              	.LBE20:
+  87:src/main.cpp  ****     for (int i = 0; i < velicina_niza; i++) {
+ 417              		.loc 1 87 10 is_stmt 0
+ 418 0294 93041000 		li	s1,1
+ 419              	.L17:
+ 420              	.LVL49:
+  95:src/main.cpp  **** 
+ 421              		.loc 1 95 5 is_stmt 1
+  95:src/main.cpp  **** 
+ 422              		.loc 1 95 14 is_stmt 0
+ 423 0298 97000000 		call	_ZdaPv@plt
+ 423      E7800000 
+ 424              	.LVL50:
+  97:src/main.cpp  ****         printString("TEST 3 PAO: Podaci u nizu su pregaženi ili korumpirani!\n");
+ 425              		.loc 1 97 5 is_stmt 1
+ 426 02a0 63800404 		beqz	s1,.L27
+ 101:src/main.cpp  **** 
+ 427              		.loc 1 101 5
+ 101:src/main.cpp  **** 
+ 428              		.loc 1 101 16 is_stmt 0
+ 429 02a4 17050000 		lla	a0,.LC12
+ 429      13050500 
+ 430 02ac 97000000 		call	_Z11printStringPKc@plt
+ 430      E7800000 
+ 431              	.LVL51:
+ 103:src/main.cpp  **** }
+ 432              		.loc 1 103 5 is_stmt 1
+ 103:src/main.cpp  **** }
+ 433              		.loc 1 103 16 is_stmt 0
+ 434 02b4 17050000 		lla	a0,.LC13
+ 434      13050500 
+ 435 02bc 97000000 		call	_Z11printStringPKc@plt
+ 435      E7800000 
+ 436              	.LVL52:
+ 437              	.L11:
+ 104:src/main.cpp  **** 
+ 438              		.loc 1 104 1
+ 439 02c4 83308101 		ld	ra,24(sp)
+ 440              		.cfi_remember_state
+ 441              		.cfi_restore 1
+ 442 02c8 03340101 		ld	s0,16(sp)
+ 443              		.cfi_restore 8
+ 444              		.cfi_def_cfa 2, 32
+ 445 02cc 83348100 		ld	s1,8(sp)
+ 446              		.cfi_restore 9
+ 447 02d0 13010102 		addi	sp,sp,32
+ 448              		.cfi_def_cfa_offset 0
+ 449 02d4 67800000 		jr	ra
+ 450              	.LVL53:
+ 451              	.L22:
+ 452              		.cfi_restore_state
+ 453              	.LBB21:
+GAS LISTING /tmp/ccggYc3n.s 			page 15
+
+
+  90:src/main.cpp  ****             break;
+ 454              		.loc 1 90 25
+ 455 02d8 93040000 		li	s1,0
+ 456 02dc 6FF0DFFB 		j	.L17
+ 457              	.LVL54:
+ 458              	.L27:
+ 459              	.LBE21:
+  98:src/main.cpp  ****         return;
+ 460              		.loc 1 98 9 is_stmt 1
+  98:src/main.cpp  ****         return;
+ 461              		.loc 1 98 20 is_stmt 0
+ 462 02e0 17050000 		lla	a0,.LC11
+ 462      13050500 
+ 463 02e8 97000000 		call	_Z11printStringPKc@plt
+ 463      E7800000 
+ 464              	.LVL55:
+  99:src/main.cpp  ****     }
+ 465              		.loc 1 99 9 is_stmt 1
+ 466 02f0 6FF05FFD 		j	.L11
+ 467              		.cfi_endproc
+ 468              	.LFE56:
+ 470              		.section	.rodata.str1.8
+ 471 0294 00000000 		.align	3
+ 472              	.LC14:
+ 473 0298 0A2D2D2D 		.string	"\n--- POCETAK TESTA NITI ---\n"
+ 473      20504F43 
+ 473      4554414B 
+ 473      20544553 
+ 473      5441204E 
+ 474 02b5 000000   		.align	3
+ 475              	.LC15:
+ 476 02b8 4552524F 		.string	"ERROR: Kreiranje Nit 1 nije uspelo!\n"
+ 476      523A204B 
+ 476      72656972 
+ 476      616E6A65 
+ 476      204E6974 
+ 477 02dd 000000   		.align	3
+ 478              	.LC16:
+ 479 02e0 4E697420 		.string	"Nit 1 kreirana uspesno.\n"
+ 479      31206B72 
+ 479      65697261 
+ 479      6E612075 
+ 479      73706573 
+ 480 02f9 00000000 		.align	3
+ 480      000000
+ 481              	.LC17:
+ 482 0300 4552524F 		.string	"ERROR: Kreiranje Nit 2 nije uspelo!\n"
+ 482      523A204B 
+ 482      72656972 
+ 482      616E6A65 
+ 482      204E6974 
+ 483 0325 000000   		.align	3
+ 484              	.LC18:
+ 485 0328 4E697420 		.string	"Nit 2 kreirana uspesno.\n"
+ 485      32206B72 
+ 485      65697261 
+ 485      6E612075 
+GAS LISTING /tmp/ccggYc3n.s 			page 16
+
+
+ 485      73706573 
+ 486 0341 00000000 		.align	3
+ 486      000000
+ 487              	.LC19:
+ 488 0348 476C6176 		.string	"Glavna nit predaje kontrolu radnicima...\n"
+ 488      6E61206E 
+ 488      69742070 
+ 488      72656461 
+ 488      6A65206B 
+ 489 0372 00000000 		.align	3
+ 489      0000
+ 490              	.LC20:
+ 491 0378 2D2D2D20 		.string	"--- TEST NITI USPESNO ZAVRSEN! Glavna nit ponovo ima kontrolu. ---\n"
+ 491      54455354 
+ 491      204E4954 
+ 491      49205553 
+ 491      5045534E 
+ 492              		.text
+ 493              		.align	2
+ 494              		.globl	_Z20pokreni_testove_nitiv
+ 496              	_Z20pokreni_testove_nitiv:
+ 497              	.LFB59:
+ 143:src/main.cpp  ****     printString("\n--- POCETAK TESTA NITI ---\n");
+ 498              		.loc 1 143 29
+ 499              		.cfi_startproc
+ 500 02f4 130101FD 		addi	sp,sp,-48
+ 501              		.cfi_def_cfa_offset 48
+ 502 02f8 23341102 		sd	ra,40(sp)
+ 503 02fc 23308102 		sd	s0,32(sp)
+ 504 0300 233C9100 		sd	s1,24(sp)
+ 505              		.cfi_offset 1, -8
+ 506              		.cfi_offset 8, -16
+ 507              		.cfi_offset 9, -24
+ 508 0304 13040103 		addi	s0,sp,48
+ 509              		.cfi_def_cfa 8, 0
+ 144:src/main.cpp  **** 
+ 510              		.loc 1 144 5
+ 144:src/main.cpp  **** 
+ 511              		.loc 1 144 16 is_stmt 0
+ 512 0308 17050000 		lla	a0,.LC14
+ 512      13050500 
+ 513 0310 97000000 		call	_Z11printStringPKc@plt
+ 513      E7800000 
+ 514              	.LVL56:
+ 146:src/main.cpp  ****     thread_t nit2 = nullptr;
+ 515              		.loc 1 146 5 is_stmt 1
+ 146:src/main.cpp  ****     thread_t nit2 = nullptr;
+ 516              		.loc 1 146 14 is_stmt 0
+ 517 0318 233C04FC 		sd	zero,-40(s0)
+ 147:src/main.cpp  **** 
+ 518              		.loc 1 147 5 is_stmt 1
+ 147:src/main.cpp  **** 
+ 519              		.loc 1 147 14 is_stmt 0
+ 520 031c 233804FC 		sd	zero,-48(s0)
+ 150:src/main.cpp  **** 
+ 521              		.loc 1 150 5 is_stmt 1
+ 150:src/main.cpp  **** 
+GAS LISTING /tmp/ccggYc3n.s 			page 17
+
+
+ 522              		.loc 1 150 29 is_stmt 0
+ 523 0320 13060000 		li	a2,0
+ 524 0324 97050000 		lla	a1,_Z16kod_za_nit_jedanPv
+ 524      93850500 
+ 525 032c 130584FD 		addi	a0,s0,-40
+ 526 0330 97000000 		call	_Z13thread_createPP3TCBPFvPvES2_@plt
+ 526      E7800000 
+ 527              	.LVL57:
+ 528 0338 93040500 		mv	s1,a0
+ 529              	.LVL58:
+ 152:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 1 nije uspelo!\n");
+ 530              		.loc 1 152 5 is_stmt 1
+ 531 033c 63420506 		bltz	a0,.L29
+ 152:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 1 nije uspelo!\n");
+ 532              		.loc 1 152 26 is_stmt 0 discriminator 1
+ 533 0340 833784FD 		ld	a5,-40(s0)
+ 152:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 1 nije uspelo!\n");
+ 534              		.loc 1 152 18 discriminator 1
+ 535 0344 638E0704 		beqz	a5,.L29
+ 157:src/main.cpp  **** 
+ 536              		.loc 1 157 5 is_stmt 1
+ 157:src/main.cpp  **** 
+ 537              		.loc 1 157 16 is_stmt 0
+ 538 0348 17050000 		lla	a0,.LC16
+ 538      13050500 
+ 539              	.LVL59:
+ 540 0350 97000000 		call	_Z11printStringPKc@plt
+ 540      E7800000 
+ 541              	.LVL60:
+ 160:src/main.cpp  ****     if (res2 < 0 || nit2 == nullptr) {
+ 542              		.loc 1 160 5 is_stmt 1
+ 160:src/main.cpp  ****     if (res2 < 0 || nit2 == nullptr) {
+ 543              		.loc 1 160 29 is_stmt 0
+ 544 0358 13060000 		li	a2,0
+ 545 035c 97050000 		lla	a1,_Z14kod_za_nit_dvaPv
+ 545      93850500 
+ 546 0364 130504FD 		addi	a0,s0,-48
+ 547 0368 97000000 		call	_Z13thread_createPP3TCBPFvPvES2_@plt
+ 547      E7800000 
+ 548              	.LVL61:
+ 161:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 2 nije uspelo!\n");
+ 549              		.loc 1 161 5 is_stmt 1
+ 550 0370 63440506 		bltz	a0,.L32
+ 161:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 2 nije uspelo!\n");
+ 551              		.loc 1 161 26 is_stmt 0 discriminator 1
+ 552 0374 833704FD 		ld	a5,-48(s0)
+ 161:src/main.cpp  ****         printString("ERROR: Kreiranje Nit 2 nije uspelo!\n");
+ 553              		.loc 1 161 18 discriminator 1
+ 554 0378 63800706 		beqz	a5,.L32
+ 165:src/main.cpp  **** 
+ 555              		.loc 1 165 5 is_stmt 1
+ 165:src/main.cpp  **** 
+ 556              		.loc 1 165 16 is_stmt 0
+ 557 037c 17050000 		lla	a0,.LC18
+ 557      13050500 
+ 558              	.LVL62:
+ 559 0384 97000000 		call	_Z11printStringPKc@plt
+GAS LISTING /tmp/ccggYc3n.s 			page 18
+
+
+ 559      E7800000 
+ 560              	.LVL63:
+ 168:src/main.cpp  **** 
+ 561              		.loc 1 168 5 is_stmt 1
+ 168:src/main.cpp  **** 
+ 562              		.loc 1 168 16 is_stmt 0
+ 563 038c 17050000 		lla	a0,.LC19
+ 563      13050500 
+ 564 0394 97000000 		call	_Z11printStringPKc@plt
+ 564      E7800000 
+ 565              	.LVL64:
+ 566 039c 6F008005 		j	.L36
+ 567              	.LVL65:
+ 568              	.L29:
+ 153:src/main.cpp  ****         printInt(res1);
+ 569              		.loc 1 153 9 is_stmt 1
+ 153:src/main.cpp  ****         printInt(res1);
+ 570              		.loc 1 153 20 is_stmt 0
+ 571 03a0 17050000 		lla	a0,.LC15
+ 571      13050500 
+ 572              	.LVL66:
+ 573 03a8 97000000 		call	_Z11printStringPKc@plt
+ 573      E7800000 
+ 574              	.LVL67:
+ 154:src/main.cpp  ****         return;
+ 575              		.loc 1 154 9 is_stmt 1
+ 154:src/main.cpp  ****         return;
+ 576              		.loc 1 154 17 is_stmt 0
+ 577 03b0 13060000 		li	a2,0
+ 578 03b4 9305A000 		li	a1,10
+ 579 03b8 13850400 		mv	a0,s1
+ 580 03bc 97000000 		call	_Z8printIntiii@plt
+ 580      E7800000 
+ 581              	.LVL68:
+ 155:src/main.cpp  ****     }
+ 582              		.loc 1 155 9 is_stmt 1
+ 583              	.L28:
+ 181:src/main.cpp  **** 
+ 584              		.loc 1 181 1 is_stmt 0
+ 585 03c4 83308102 		ld	ra,40(sp)
+ 586              		.cfi_remember_state
+ 587              		.cfi_restore 1
+ 588 03c8 03340102 		ld	s0,32(sp)
+ 589              		.cfi_restore 8
+ 590              		.cfi_def_cfa 2, 48
+ 591 03cc 83348101 		ld	s1,24(sp)
+ 592              		.cfi_restore 9
+ 593 03d0 13010103 		addi	sp,sp,48
+ 594              		.cfi_def_cfa_offset 0
+ 595 03d4 67800000 		jr	ra
+ 596              	.LVL69:
+ 597              	.L32:
+ 598              		.cfi_restore_state
+ 162:src/main.cpp  ****         return;
+ 599              		.loc 1 162 9 is_stmt 1
+ 162:src/main.cpp  ****         return;
+ 600              		.loc 1 162 20 is_stmt 0
+GAS LISTING /tmp/ccggYc3n.s 			page 19
+
+
+ 601 03d8 17050000 		lla	a0,.LC17
+ 601      13050500 
+ 602              	.LVL70:
+ 603 03e0 97000000 		call	_Z11printStringPKc@plt
+ 603      E7800000 
+ 604              	.LVL71:
+ 163:src/main.cpp  ****     }
+ 605              		.loc 1 163 9 is_stmt 1
+ 606 03e8 6FF0DFFD 		j	.L28
+ 607              	.L34:
+ 177:src/main.cpp  ****     }
+ 608              		.loc 1 177 9
+ 177:src/main.cpp  ****     }
+ 609              		.loc 1 177 24 is_stmt 0
+ 610 03ec 97000000 		call	_Z15thread_dispatchv@plt
+ 610      E7800000 
+ 611              	.LVL72:
+ 612              	.L36:
+ 176:src/main.cpp  ****         thread_dispatch();
+ 613              		.loc 1 176 5 is_stmt 1
+ 176:src/main.cpp  ****         thread_dispatch();
+ 614              		.loc 1 176 29
+ 176:src/main.cpp  ****         thread_dispatch();
+ 615              		.loc 1 176 25 is_stmt 0
+ 616 03f4 17070000 		lw	a4,.LANCHOR0
+ 616      03270700 
+ 176:src/main.cpp  ****         thread_dispatch();
+ 617              		.loc 1 176 29
+ 618 03fc 93074000 		li	a5,4
+ 619 0400 E3D6E7FE 		ble	a4,a5,.L34
+ 176:src/main.cpp  ****         thread_dispatch();
+ 620              		.loc 1 176 45 discriminator 2
+ 621 0404 17070000 		lw	a4,.LANCHOR0+4
+ 621      03270700 
+ 176:src/main.cpp  ****         thread_dispatch();
+ 622              		.loc 1 176 29 discriminator 2
+ 623 040c E3D0E7FE 		ble	a4,a5,.L34
+ 180:src/main.cpp  **** }
+ 624              		.loc 1 180 5 is_stmt 1
+ 180:src/main.cpp  **** }
+ 625              		.loc 1 180 16 is_stmt 0
+ 626 0410 17050000 		lla	a0,.LC20
+ 626      13050500 
+ 627 0418 97000000 		call	_Z11printStringPKc@plt
+ 627      E7800000 
+ 628              	.LVL73:
+ 629 0420 6FF05FFA 		j	.L28
+ 630              		.cfi_endproc
+ 631              	.LFE59:
+ 633              		.align	2
+ 634              		.globl	main
+ 636              	main:
+ 637              	.LFB61:
+ 187:src/main.cpp  **** 
+ 188:src/main.cpp  **** int main() {
+ 638              		.loc 1 188 12 is_stmt 1
+ 639              		.cfi_startproc
+GAS LISTING /tmp/ccggYc3n.s 			page 20
+
+
+ 640 0424 130101FE 		addi	sp,sp,-32
+ 641              		.cfi_def_cfa_offset 32
+ 642 0428 233C1100 		sd	ra,24(sp)
+ 643 042c 23388100 		sd	s0,16(sp)
+ 644              		.cfi_offset 1, -8
+ 645              		.cfi_offset 8, -16
+ 646 0430 13040102 		addi	s0,sp,32
+ 647              		.cfi_def_cfa 8, 0
+ 189:src/main.cpp  ****     MemoryAllocator::initMem();
+ 648              		.loc 1 189 5
+ 649              		.loc 1 189 29 is_stmt 0
+ 650 0434 97000000 		call	_ZN15MemoryAllocator7initMemEv@plt
+ 650      E7800000 
+ 651              	.LVL74:
+ 190:src/main.cpp  ****     Riscv::w_stvec((uint64)&Riscv::supervisorTrap);
+ 652              		.loc 1 190 5 is_stmt 1
+ 653              		.loc 1 190 19 is_stmt 0
+ 654 043c 97070000 		la	a5,_ZN5Riscv14supervisorTrapEv
+ 654      83B70700 
+ 655              	.LVL75:
+ 656              	.LBB22:
+ 657              	.LBB23:
+ 658              		.file 2 "src/../h/riscv.hpp"
+   1:src/../h/riscv.hpp **** //
+   2:src/../h/riscv.hpp **** // Created by marko on 20.4.22..
+   3:src/../h/riscv.hpp **** //
+   4:src/../h/riscv.hpp **** 
+   5:src/../h/riscv.hpp **** #ifndef OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_RISCV_HPP
+   6:src/../h/riscv.hpp **** #define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_RISCV_HPP
+   7:src/../h/riscv.hpp **** 
+   8:src/../h/riscv.hpp **** #include "../lib/hw.h"
+   9:src/../h/riscv.hpp **** 
+  10:src/../h/riscv.hpp **** class Riscv
+  11:src/../h/riscv.hpp **** {
+  12:src/../h/riscv.hpp **** public:
+  13:src/../h/riscv.hpp **** 
+  14:src/../h/riscv.hpp ****     // pop sstatus.spp and sstatus.spie bits (has to be a non inline function)
+  15:src/../h/riscv.hpp ****     static void popSppSpie();
+  16:src/../h/riscv.hpp **** 
+  17:src/../h/riscv.hpp ****     // read register scause
+  18:src/../h/riscv.hpp ****     static uint64 r_scause();
+  19:src/../h/riscv.hpp **** 
+  20:src/../h/riscv.hpp ****     // write register scause
+  21:src/../h/riscv.hpp ****     static void w_scause(uint64 scause);
+  22:src/../h/riscv.hpp **** 
+  23:src/../h/riscv.hpp ****     // read register sepc
+  24:src/../h/riscv.hpp ****     static uint64 r_sepc();
+  25:src/../h/riscv.hpp **** 
+  26:src/../h/riscv.hpp ****     // write register sepc
+  27:src/../h/riscv.hpp ****     static void w_sepc(uint64 sepc);
+  28:src/../h/riscv.hpp **** 
+  29:src/../h/riscv.hpp ****     // read register stvec
+  30:src/../h/riscv.hpp ****     static uint64 r_stvec();
+  31:src/../h/riscv.hpp **** 
+  32:src/../h/riscv.hpp ****     // write register stvec
+  33:src/../h/riscv.hpp ****     static void w_stvec(uint64 stvec);
+  34:src/../h/riscv.hpp **** 
+GAS LISTING /tmp/ccggYc3n.s 			page 21
+
+
+  35:src/../h/riscv.hpp ****     // read register stval
+  36:src/../h/riscv.hpp ****     static uint64 r_stval();
+  37:src/../h/riscv.hpp **** 
+  38:src/../h/riscv.hpp ****     // write register stval
+  39:src/../h/riscv.hpp ****     static void w_stval(uint64 stval);
+  40:src/../h/riscv.hpp **** 
+  41:src/../h/riscv.hpp ****     enum BitMaskSip
+  42:src/../h/riscv.hpp ****     {
+  43:src/../h/riscv.hpp ****         SIP_SSIP = (1 << 1),
+  44:src/../h/riscv.hpp ****         SIP_STIP = (1 << 5),
+  45:src/../h/riscv.hpp ****         SIP_SEIP = (1 << 9),
+  46:src/../h/riscv.hpp ****     };
+  47:src/../h/riscv.hpp **** 
+  48:src/../h/riscv.hpp ****     // mask set register sip
+  49:src/../h/riscv.hpp ****     static void ms_sip(uint64 mask);
+  50:src/../h/riscv.hpp **** 
+  51:src/../h/riscv.hpp ****     // mask clear register sip
+  52:src/../h/riscv.hpp ****     static void mc_sip(uint64 mask);
+  53:src/../h/riscv.hpp **** 
+  54:src/../h/riscv.hpp ****     // read register sip
+  55:src/../h/riscv.hpp ****     static uint64 r_sip();
+  56:src/../h/riscv.hpp **** 
+  57:src/../h/riscv.hpp ****     // write register sip
+  58:src/../h/riscv.hpp ****     static void w_sip(uint64 sip);
+  59:src/../h/riscv.hpp **** 
+  60:src/../h/riscv.hpp ****     enum BitMaskSstatus
+  61:src/../h/riscv.hpp ****     {
+  62:src/../h/riscv.hpp ****         SSTATUS_SIE = (1 << 1),
+  63:src/../h/riscv.hpp ****         SSTATUS_SPIE = (1 << 5),
+  64:src/../h/riscv.hpp ****         SSTATUS_SPP = (1 << 8),
+  65:src/../h/riscv.hpp ****     };
+  66:src/../h/riscv.hpp ****     //read a0 reg
+  67:src/../h/riscv.hpp ****     static uint64 r_a0();
+  68:src/../h/riscv.hpp ****     //write a0 reg;
+  69:src/../h/riscv.hpp ****     static void w_a0(uint64 writeValue);
+  70:src/../h/riscv.hpp **** 
+  71:src/../h/riscv.hpp ****     // mask set register sstatus
+  72:src/../h/riscv.hpp ****     static void ms_sstatus(uint64 mask);
+  73:src/../h/riscv.hpp **** 
+  74:src/../h/riscv.hpp ****     // mask clear register sstatus
+  75:src/../h/riscv.hpp ****     static void mc_sstatus(uint64 mask);
+  76:src/../h/riscv.hpp **** 
+  77:src/../h/riscv.hpp ****     // read register sstatus
+  78:src/../h/riscv.hpp ****     static uint64 r_sstatus();
+  79:src/../h/riscv.hpp **** 
+  80:src/../h/riscv.hpp ****     // write register sstatus
+  81:src/../h/riscv.hpp ****     static void w_sstatus(uint64 sstatus);
+  82:src/../h/riscv.hpp **** 
+  83:src/../h/riscv.hpp ****     // supervisor trap
+  84:src/../h/riscv.hpp ****     static void supervisorTrap();
+  85:src/../h/riscv.hpp **** 
+  86:src/../h/riscv.hpp **** private:
+  87:src/../h/riscv.hpp **** 
+  88:src/../h/riscv.hpp ****     // supervisor trap handler
+  89:src/../h/riscv.hpp ****     static void handleSupervisorTrap();
+  90:src/../h/riscv.hpp **** 
+  91:src/../h/riscv.hpp ****     static void handleConsoleInterrupt();
+GAS LISTING /tmp/ccggYc3n.s 			page 22
+
+
+  92:src/../h/riscv.hpp **** 
+  93:src/../h/riscv.hpp ****     static void handleTimerInterrupt();
+  94:src/../h/riscv.hpp **** 
+  95:src/../h/riscv.hpp **** };
+  96:src/../h/riscv.hpp **** 
+  97:src/../h/riscv.hpp **** inline uint64 Riscv::r_scause()
+  98:src/../h/riscv.hpp **** {
+  99:src/../h/riscv.hpp ****     uint64 volatile scause;
+ 100:src/../h/riscv.hpp ****     __asm__ volatile ("csrr %[scause], scause" : [scause] "=r"(scause));
+ 101:src/../h/riscv.hpp ****     return scause;
+ 102:src/../h/riscv.hpp **** }
+ 103:src/../h/riscv.hpp **** 
+ 104:src/../h/riscv.hpp **** inline void Riscv::w_scause(uint64 scause)
+ 105:src/../h/riscv.hpp **** {
+ 106:src/../h/riscv.hpp ****     __asm__ volatile ("csrw scause, %[scause]" : : [scause] "r"(scause));
+ 107:src/../h/riscv.hpp **** }
+ 108:src/../h/riscv.hpp **** 
+ 109:src/../h/riscv.hpp **** inline uint64 Riscv::r_sepc()
+ 110:src/../h/riscv.hpp **** {
+ 111:src/../h/riscv.hpp ****     uint64 volatile sepc;
+ 112:src/../h/riscv.hpp ****     __asm__ volatile ("csrr %[sepc], sepc" : [sepc] "=r"(sepc));
+ 113:src/../h/riscv.hpp ****     return sepc;
+ 114:src/../h/riscv.hpp **** }
+ 115:src/../h/riscv.hpp **** 
+ 116:src/../h/riscv.hpp **** inline void Riscv::w_sepc(uint64 sepc)
+ 117:src/../h/riscv.hpp **** {
+ 118:src/../h/riscv.hpp ****     __asm__ volatile ("csrw sepc, %[sepc]" : : [sepc] "r"(sepc));
+ 119:src/../h/riscv.hpp **** }
+ 120:src/../h/riscv.hpp **** 
+ 121:src/../h/riscv.hpp **** inline uint64 Riscv::r_stvec()
+ 122:src/../h/riscv.hpp **** {
+ 123:src/../h/riscv.hpp ****     uint64 volatile stvec;
+ 124:src/../h/riscv.hpp ****     __asm__ volatile ("csrr %[stvec], stvec" : [stvec] "=r"(stvec));
+ 125:src/../h/riscv.hpp ****     return stvec;
+ 126:src/../h/riscv.hpp **** }
+ 127:src/../h/riscv.hpp **** 
+ 128:src/../h/riscv.hpp **** inline void Riscv::w_stvec(uint64 stvec)
+ 129:src/../h/riscv.hpp **** {
+ 130:src/../h/riscv.hpp ****     __asm__ volatile ("csrw stvec, %[stvec]" : : [stvec] "r"(stvec));
+ 659              		.loc 2 130 5 is_stmt 1
+ 660              		.loc 2 130 69 is_stmt 0
+ 661              	#APP
+ 662              	# 130 "src/../h/riscv.hpp" 1
+ 131              	}
+ 663              		csrw stvec, a5
+ 664              	# 0 "" 2
+ 665              	.LVL76:
+ 666              	#NO_APP
+ 667              	.LBE23:
+ 668              	.LBE22:
+ 191:src/main.cpp  **** 
+ 192:src/main.cpp  ****     create_main_thread();
+ 669              		.loc 1 192 5 is_stmt 1
+ 670              		.loc 1 192 23 is_stmt 0
+ 671 0448 97000000 		call	_Z18create_main_threadv@plt
+ 671      E7800000 
+ 672              	.LVL77:
+GAS LISTING /tmp/ccggYc3n.s 			page 23
+
+
+ 193:src/main.cpp  **** 
+ 194:src/main.cpp  ****     thread_t userMainThread;
+ 673              		.loc 1 194 5 is_stmt 1
+ 195:src/main.cpp  ****     thread_create(&userMainThread, userMainWrapper, nullptr);
+ 674              		.loc 1 195 5
+ 675              		.loc 1 195 18 is_stmt 0
+ 676 0450 13060000 		li	a2,0
+ 677 0454 97050000 		lla	a1,_Z15userMainWrapperPv
+ 677      93850500 
+ 678 045c 130584FE 		addi	a0,s0,-24
+ 679 0460 97000000 		call	_Z13thread_createPP3TCBPFvPvES2_@plt
+ 679      E7800000 
+ 680              	.LVL78:
+ 681              	.L39:
+ 196:src/main.cpp  **** 
+ 197:src/main.cpp  ****     while(true) {
+ 682              		.loc 1 197 5 is_stmt 1
+ 198:src/main.cpp  ****         thread_dispatch();
+ 683              		.loc 1 198 9
+ 684              		.loc 1 198 24 is_stmt 0
+ 685 0468 97000000 		call	_Z15thread_dispatchv@plt
+ 685      E7800000 
+ 686              	.LVL79:
+ 687 0470 6FF09FFF 		j	.L39
+ 688              		.cfi_endproc
+ 689              	.LFE61:
+ 691              		.globl	brojac_nit_2
+ 692              		.globl	brojac_nit_1
+ 693              		.bss
+ 694              		.align	2
+ 695              		.set	.LANCHOR0,. + 0
+ 698              	brojac_nit_1:
+ 699 0000 00000000 		.zero	4
+ 702              	brojac_nit_2:
+ 703 0004 00000000 		.zero	4
+ 704              		.text
+ 705              	.Letext0:
+ 706              		.file 3 "src/../h/../lib/hw.h"
+ 707              		.file 4 "src/../h/MemoryAllocator.hpp"
+ 708              		.file 5 "src/../h/tcb.hpp"
+ 709              		.file 6 "src/../h/syscall_c.hpp"
+ 710              		.file 7 "src/../test/printing.hpp"
+ 711              		.file 8 "src/../h/print.hpp"
+ 712              		.file 9 "src/../h/syscall_cpp.hpp"
+GAS LISTING /tmp/ccggYc3n.s 			page 24
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.cpp
+     /tmp/ccggYc3n.s:20     .text:0000000000000000 _Z16kod_za_nit_jedanPv
+     /tmp/ccggYc3n.s:24     .text:0000000000000000 .L0 
+     /tmp/ccggYc3n.s:26     .text:0000000000000000 .L0 
+     /tmp/ccggYc3n.s:27     .text:0000000000000004 .L0 
+     /tmp/ccggYc3n.s:31     .text:0000000000000010 .L0 
+     /tmp/ccggYc3n.s:32     .text:0000000000000010 .L0 
+     /tmp/ccggYc3n.s:33     .text:0000000000000010 .L0 
+     /tmp/ccggYc3n.s:35     .text:0000000000000014 .L0 
+     /tmp/ccggYc3n.s:37     .text:0000000000000014 .L0 
+     /tmp/ccggYc3n.s:38     .text:0000000000000014 .L0 
+     /tmp/ccggYc3n.s:44     .text:0000000000000024 .L0 
+     /tmp/ccggYc3n.s:45     .text:0000000000000024 .L0 
+     /tmp/ccggYc3n.s:49     .text:0000000000000028 .L0 
+     /tmp/ccggYc3n.s:52     .text:0000000000000030 .L0 
+     /tmp/ccggYc3n.s:53     .text:0000000000000030 .L0 
+     /tmp/ccggYc3n.s:58     .text:0000000000000044 .L0 
+     /tmp/ccggYc3n.s:59     .text:0000000000000044 .L0 
+     /tmp/ccggYc3n.s:63     .text:0000000000000054 .L0 
+     /tmp/ccggYc3n.s:64     .text:0000000000000054 .L0 
+     /tmp/ccggYc3n.s:68     .text:0000000000000060 .L0 
+     /tmp/ccggYc3n.s:69     .text:0000000000000060 .L0 
+     /tmp/ccggYc3n.s:72     .text:0000000000000068 .L0 
+     /tmp/ccggYc3n.s:79     .text:0000000000000070 .L0 
+     /tmp/ccggYc3n.s:80     .text:0000000000000070 .L0 
+     /tmp/ccggYc3n.s:84     .text:0000000000000080 .L0 
+     /tmp/ccggYc3n.s:85     .text:0000000000000080 .L0 
+     /tmp/ccggYc3n.s:88     .text:0000000000000088 .L0 
+     /tmp/ccggYc3n.s:89     .text:000000000000008c .L0 
+     /tmp/ccggYc3n.s:91     .text:0000000000000090 .L0 
+     /tmp/ccggYc3n.s:92     .text:0000000000000090 .L0 
+     /tmp/ccggYc3n.s:94     .text:0000000000000094 .L0 
+     /tmp/ccggYc3n.s:97     .text:0000000000000098 .L0 
+     /tmp/ccggYc3n.s:99     .text:000000000000009c .L0 
+     /tmp/ccggYc3n.s:116    .text:000000000000009c _Z14kod_za_nit_dvaPv
+     /tmp/ccggYc3n.s:119    .text:000000000000009c .L0 
+     /tmp/ccggYc3n.s:121    .text:000000000000009c .L0 
+     /tmp/ccggYc3n.s:122    .text:00000000000000a0 .L0 
+     /tmp/ccggYc3n.s:126    .text:00000000000000ac .L0 
+     /tmp/ccggYc3n.s:127    .text:00000000000000ac .L0 
+     /tmp/ccggYc3n.s:128    .text:00000000000000ac .L0 
+     /tmp/ccggYc3n.s:130    .text:00000000000000b0 .L0 
+     /tmp/ccggYc3n.s:132    .text:00000000000000b0 .L0 
+     /tmp/ccggYc3n.s:133    .text:00000000000000b0 .L0 
+     /tmp/ccggYc3n.s:139    .text:00000000000000c0 .L0 
+     /tmp/ccggYc3n.s:140    .text:00000000000000c0 .L0 
+     /tmp/ccggYc3n.s:144    .text:00000000000000c4 .L0 
+     /tmp/ccggYc3n.s:147    .text:00000000000000cc .L0 
+     /tmp/ccggYc3n.s:148    .text:00000000000000cc .L0 
+     /tmp/ccggYc3n.s:153    .text:00000000000000e0 .L0 
+     /tmp/ccggYc3n.s:154    .text:00000000000000e0 .L0 
+     /tmp/ccggYc3n.s:158    .text:00000000000000f0 .L0 
+     /tmp/ccggYc3n.s:159    .text:00000000000000f0 .L0 
+     /tmp/ccggYc3n.s:162    .text:00000000000000f8 .L0 
+     /tmp/ccggYc3n.s:169    .text:0000000000000100 .L0 
+     /tmp/ccggYc3n.s:170    .text:0000000000000100 .L0 
+GAS LISTING /tmp/ccggYc3n.s 			page 25
+
+
+     /tmp/ccggYc3n.s:174    .text:0000000000000110 .L0 
+     /tmp/ccggYc3n.s:175    .text:0000000000000110 .L0 
+     /tmp/ccggYc3n.s:178    .text:0000000000000118 .L0 
+     /tmp/ccggYc3n.s:179    .text:000000000000011c .L0 
+     /tmp/ccggYc3n.s:181    .text:0000000000000120 .L0 
+     /tmp/ccggYc3n.s:182    .text:0000000000000120 .L0 
+     /tmp/ccggYc3n.s:184    .text:0000000000000124 .L0 
+     /tmp/ccggYc3n.s:187    .text:0000000000000128 .L0 
+     /tmp/ccggYc3n.s:189    .text:000000000000012c .L0 
+     /tmp/ccggYc3n.s:195    .text:000000000000012c _Z15userMainWrapperPv
+     /tmp/ccggYc3n.s:198    .text:000000000000012c .L0 
+     /tmp/ccggYc3n.s:199    .text:000000000000012c .L0 
+     /tmp/ccggYc3n.s:200    .text:0000000000000130 .L0 
+     /tmp/ccggYc3n.s:203    .text:0000000000000138 .L0 
+     /tmp/ccggYc3n.s:204    .text:0000000000000138 .L0 
+     /tmp/ccggYc3n.s:206    .text:000000000000013c .L0 
+     /tmp/ccggYc3n.s:208    .text:000000000000013c .L0 
+     /tmp/ccggYc3n.s:209    .text:000000000000013c .L0 
+     /tmp/ccggYc3n.s:212    .text:0000000000000144 .L0 
+     /tmp/ccggYc3n.s:213    .text:0000000000000148 .L0 
+     /tmp/ccggYc3n.s:215    .text:000000000000014c .L0 
+     /tmp/ccggYc3n.s:216    .text:000000000000014c .L0 
+     /tmp/ccggYc3n.s:218    .text:0000000000000150 .L0 
+     /tmp/ccggYc3n.s:220    .text:0000000000000154 .L0 
+     /tmp/ccggYc3n.s:252    .text:0000000000000154 _Z25pokreni_testove_alokacijev
+     /tmp/ccggYc3n.s:255    .text:0000000000000154 .L0 
+     /tmp/ccggYc3n.s:256    .text:0000000000000154 .L0 
+     /tmp/ccggYc3n.s:257    .text:0000000000000158 .L0 
+     /tmp/ccggYc3n.s:261    .text:0000000000000164 .L0 
+     /tmp/ccggYc3n.s:262    .text:0000000000000164 .L0 
+     /tmp/ccggYc3n.s:263    .text:0000000000000164 .L0 
+     /tmp/ccggYc3n.s:265    .text:0000000000000168 .L0 
+     /tmp/ccggYc3n.s:267    .text:0000000000000168 .L0 
+     /tmp/ccggYc3n.s:268    .text:0000000000000168 .L0 
+     /tmp/ccggYc3n.s:275    .text:000000000000017c .L0 
+     /tmp/ccggYc3n.s:277    .text:0000000000000180 .L0 
+     /tmp/ccggYc3n.s:278    .text:0000000000000180 .L0 
+     /tmp/ccggYc3n.s:279    .text:0000000000000180 .L0 
+     /tmp/ccggYc3n.s:282    .text:0000000000000188 .L0 
+     /tmp/ccggYc3n.s:283    .text:0000000000000188 .L0 
+     /tmp/ccggYc3n.s:287    .text:0000000000000198 .L0 
+     /tmp/ccggYc3n.s:288    .text:0000000000000198 .L0 
+     /tmp/ccggYc3n.s:294    .text:00000000000001a4 .L0 
+     /tmp/ccggYc3n.s:297    .text:00000000000001ac .L0 
+     /tmp/ccggYc3n.s:298    .text:00000000000001ac .L0 
+     /tmp/ccggYc3n.s:302    .text:00000000000001b8 .L0 
+     /tmp/ccggYc3n.s:303    .text:00000000000001b8 .L0 
+     /tmp/ccggYc3n.s:307    .text:00000000000001c4 .L0 
+     /tmp/ccggYc3n.s:308    .text:00000000000001c4 .L0 
+     /tmp/ccggYc3n.s:315    .text:00000000000001d0 .L0 
+     /tmp/ccggYc3n.s:317    .text:00000000000001d4 .L0 
+     /tmp/ccggYc3n.s:319    .text:00000000000001d4 .L0 
+     /tmp/ccggYc3n.s:320    .text:00000000000001d4 .L0 
+     /tmp/ccggYc3n.s:321    .text:00000000000001d4 .L0 
+     /tmp/ccggYc3n.s:324    .text:00000000000001dc .L0 
+     /tmp/ccggYc3n.s:325    .text:00000000000001dc .L0 
+     /tmp/ccggYc3n.s:329    .text:00000000000001ec .L0 
+GAS LISTING /tmp/ccggYc3n.s 			page 26
+
+
+     /tmp/ccggYc3n.s:330    .text:00000000000001ec .L0 
+     /tmp/ccggYc3n.s:331    .text:00000000000001ec .L0 
+     /tmp/ccggYc3n.s:335    .text:00000000000001f8 .L0 
+     /tmp/ccggYc3n.s:338    .text:00000000000001fc .L0 
+     /tmp/ccggYc3n.s:342    .text:0000000000000200 .L0 
+     /tmp/ccggYc3n.s:345    .text:0000000000000208 .L0 
+     /tmp/ccggYc3n.s:346    .text:0000000000000208 .L0 
+     /tmp/ccggYc3n.s:349    .text:0000000000000210 .L0 
+     /tmp/ccggYc3n.s:353    .text:000000000000021c .L0 
+     /tmp/ccggYc3n.s:355    .text:0000000000000220 .L0 
+     /tmp/ccggYc3n.s:362    .text:0000000000000228 .L0 
+     /tmp/ccggYc3n.s:363    .text:0000000000000228 .L0 
+     /tmp/ccggYc3n.s:368    .text:0000000000000238 .L0 
+     /tmp/ccggYc3n.s:372    .text:000000000000023c .L0 
+     /tmp/ccggYc3n.s:373    .text:000000000000023c .L0 
+     /tmp/ccggYc3n.s:378    .text:000000000000024c .L0 
+     /tmp/ccggYc3n.s:382    .text:0000000000000250 .L0 
+     /tmp/ccggYc3n.s:383    .text:0000000000000250 .L0 
+     /tmp/ccggYc3n.s:388    .text:0000000000000260 .L0 
+     /tmp/ccggYc3n.s:393    .text:0000000000000264 .L0 
+     /tmp/ccggYc3n.s:397    .text:0000000000000268 .L0 
+     /tmp/ccggYc3n.s:400    .text:0000000000000270 .L0 
+     /tmp/ccggYc3n.s:401    .text:0000000000000270 .L0 
+     /tmp/ccggYc3n.s:405    .text:000000000000027c .L0 
+     /tmp/ccggYc3n.s:409    .text:0000000000000288 .L0 
+     /tmp/ccggYc3n.s:411    .text:000000000000028c .L0 
+     /tmp/ccggYc3n.s:418    .text:0000000000000294 .L0 
+     /tmp/ccggYc3n.s:422    .text:0000000000000298 .L0 
+     /tmp/ccggYc3n.s:423    .text:0000000000000298 .L0 
+     /tmp/ccggYc3n.s:426    .text:00000000000002a0 .L0 
+     /tmp/ccggYc3n.s:428    .text:00000000000002a4 .L0 
+     /tmp/ccggYc3n.s:429    .text:00000000000002a4 .L0 
+     /tmp/ccggYc3n.s:433    .text:00000000000002b4 .L0 
+     /tmp/ccggYc3n.s:434    .text:00000000000002b4 .L0 
+     /tmp/ccggYc3n.s:439    .text:00000000000002c4 .L0 
+     /tmp/ccggYc3n.s:440    .text:00000000000002c8 .L0 
+     /tmp/ccggYc3n.s:441    .text:00000000000002c8 .L0 
+     /tmp/ccggYc3n.s:443    .text:00000000000002cc .L0 
+     /tmp/ccggYc3n.s:444    .text:00000000000002cc .L0 
+     /tmp/ccggYc3n.s:446    .text:00000000000002d0 .L0 
+     /tmp/ccggYc3n.s:448    .text:00000000000002d4 .L0 
+     /tmp/ccggYc3n.s:452    .text:00000000000002d8 .L0 
+     /tmp/ccggYc3n.s:455    .text:00000000000002d8 .L0 
+     /tmp/ccggYc3n.s:461    .text:00000000000002e0 .L0 
+     /tmp/ccggYc3n.s:462    .text:00000000000002e0 .L0 
+     /tmp/ccggYc3n.s:466    .text:00000000000002f0 .L0 
+     /tmp/ccggYc3n.s:467    .text:00000000000002f4 .L0 
+     /tmp/ccggYc3n.s:496    .text:00000000000002f4 _Z20pokreni_testove_nitiv
+     /tmp/ccggYc3n.s:499    .text:00000000000002f4 .L0 
+     /tmp/ccggYc3n.s:500    .text:00000000000002f4 .L0 
+     /tmp/ccggYc3n.s:501    .text:00000000000002f8 .L0 
+     /tmp/ccggYc3n.s:505    .text:0000000000000304 .L0 
+     /tmp/ccggYc3n.s:506    .text:0000000000000304 .L0 
+     /tmp/ccggYc3n.s:507    .text:0000000000000304 .L0 
+     /tmp/ccggYc3n.s:509    .text:0000000000000308 .L0 
+     /tmp/ccggYc3n.s:511    .text:0000000000000308 .L0 
+     /tmp/ccggYc3n.s:512    .text:0000000000000308 .L0 
+GAS LISTING /tmp/ccggYc3n.s 			page 27
+
+
+     /tmp/ccggYc3n.s:516    .text:0000000000000318 .L0 
+     /tmp/ccggYc3n.s:517    .text:0000000000000318 .L0 
+     /tmp/ccggYc3n.s:519    .text:000000000000031c .L0 
+     /tmp/ccggYc3n.s:520    .text:000000000000031c .L0 
+     /tmp/ccggYc3n.s:522    .text:0000000000000320 .L0 
+     /tmp/ccggYc3n.s:523    .text:0000000000000320 .L0 
+     /tmp/ccggYc3n.s:531    .text:000000000000033c .L0 
+     /tmp/ccggYc3n.s:533    .text:0000000000000340 .L0 
+     /tmp/ccggYc3n.s:535    .text:0000000000000344 .L0 
+     /tmp/ccggYc3n.s:537    .text:0000000000000348 .L0 
+     /tmp/ccggYc3n.s:538    .text:0000000000000348 .L0 
+     /tmp/ccggYc3n.s:543    .text:0000000000000358 .L0 
+     /tmp/ccggYc3n.s:544    .text:0000000000000358 .L0 
+     /tmp/ccggYc3n.s:550    .text:0000000000000370 .L0 
+     /tmp/ccggYc3n.s:552    .text:0000000000000374 .L0 
+     /tmp/ccggYc3n.s:554    .text:0000000000000378 .L0 
+     /tmp/ccggYc3n.s:556    .text:000000000000037c .L0 
+     /tmp/ccggYc3n.s:557    .text:000000000000037c .L0 
+     /tmp/ccggYc3n.s:562    .text:000000000000038c .L0 
+     /tmp/ccggYc3n.s:563    .text:000000000000038c .L0 
+     /tmp/ccggYc3n.s:570    .text:00000000000003a0 .L0 
+     /tmp/ccggYc3n.s:571    .text:00000000000003a0 .L0 
+     /tmp/ccggYc3n.s:576    .text:00000000000003b0 .L0 
+     /tmp/ccggYc3n.s:577    .text:00000000000003b0 .L0 
+     /tmp/ccggYc3n.s:584    .text:00000000000003c4 .L0 
+     /tmp/ccggYc3n.s:585    .text:00000000000003c4 .L0 
+     /tmp/ccggYc3n.s:586    .text:00000000000003c8 .L0 
+     /tmp/ccggYc3n.s:587    .text:00000000000003c8 .L0 
+     /tmp/ccggYc3n.s:589    .text:00000000000003cc .L0 
+     /tmp/ccggYc3n.s:590    .text:00000000000003cc .L0 
+     /tmp/ccggYc3n.s:592    .text:00000000000003d0 .L0 
+     /tmp/ccggYc3n.s:594    .text:00000000000003d4 .L0 
+     /tmp/ccggYc3n.s:598    .text:00000000000003d8 .L0 
+     /tmp/ccggYc3n.s:600    .text:00000000000003d8 .L0 
+     /tmp/ccggYc3n.s:601    .text:00000000000003d8 .L0 
+     /tmp/ccggYc3n.s:606    .text:00000000000003e8 .L0 
+     /tmp/ccggYc3n.s:609    .text:00000000000003ec .L0 
+     /tmp/ccggYc3n.s:610    .text:00000000000003ec .L0 
+     /tmp/ccggYc3n.s:614    .text:00000000000003f4 .L0 
+     /tmp/ccggYc3n.s:615    .text:00000000000003f4 .L0 
+     /tmp/ccggYc3n.s:616    .text:00000000000003f4 .L0 
+     /tmp/ccggYc3n.s:618    .text:00000000000003fc .L0 
+     /tmp/ccggYc3n.s:621    .text:0000000000000404 .L0 
+     /tmp/ccggYc3n.s:623    .text:000000000000040c .L0 
+     /tmp/ccggYc3n.s:625    .text:0000000000000410 .L0 
+     /tmp/ccggYc3n.s:626    .text:0000000000000410 .L0 
+     /tmp/ccggYc3n.s:630    .text:0000000000000424 .L0 
+     /tmp/ccggYc3n.s:636    .text:0000000000000424 main
+     /tmp/ccggYc3n.s:639    .text:0000000000000424 .L0 
+     /tmp/ccggYc3n.s:640    .text:0000000000000424 .L0 
+     /tmp/ccggYc3n.s:641    .text:0000000000000428 .L0 
+     /tmp/ccggYc3n.s:644    .text:0000000000000430 .L0 
+     /tmp/ccggYc3n.s:645    .text:0000000000000430 .L0 
+     /tmp/ccggYc3n.s:647    .text:0000000000000434 .L0 
+     /tmp/ccggYc3n.s:649    .text:0000000000000434 .L0 
+     /tmp/ccggYc3n.s:650    .text:0000000000000434 .L0 
+     /tmp/ccggYc3n.s:653    .text:000000000000043c .L0 
+GAS LISTING /tmp/ccggYc3n.s 			page 28
+
+
+     /tmp/ccggYc3n.s:654    .text:000000000000043c .L0 
+     /tmp/ccggYc3n.s:660    .text:0000000000000444 .L0 
+  src/../h/riscv.hpp:130    .text:0000000000000444 .L0 
+     /tmp/ccggYc3n.s:670    .text:0000000000000448 .L0 
+     /tmp/ccggYc3n.s:671    .text:0000000000000448 .L0 
+     /tmp/ccggYc3n.s:674    .text:0000000000000450 .L0 
+     /tmp/ccggYc3n.s:675    .text:0000000000000450 .L0 
+     /tmp/ccggYc3n.s:676    .text:0000000000000450 .L0 
+     /tmp/ccggYc3n.s:683    .text:0000000000000468 .L0 
+     /tmp/ccggYc3n.s:684    .text:0000000000000468 .L0 
+     /tmp/ccggYc3n.s:685    .text:0000000000000468 .L0 
+     /tmp/ccggYc3n.s:688    .text:0000000000000474 .L0 
+     /tmp/ccggYc3n.s:702    .bss:0000000000000004 brojac_nit_2
+     /tmp/ccggYc3n.s:698    .bss:0000000000000000 brojac_nit_1
+     /tmp/ccggYc3n.s:695    .bss:0000000000000000 .LANCHOR0
+     /tmp/ccggYc3n.s:713    .text:0000000000000474 .L0 
+     /tmp/ccggYc3n.s:8      .rodata.str1.8:0000000000000000 .LC0
+     /tmp/ccggYc3n.s:38     .text:0000000000000014 .L0 
+     /tmp/ccggYc3n.s:53     .text:0000000000000030 .L0 
+     /tmp/ccggYc3n.s:11     .rodata.str1.8:0000000000000028 .LC1
+     /tmp/ccggYc3n.s:59     .text:0000000000000044 .L0 
+     /tmp/ccggYc3n.s:14     .rodata.str1.8:0000000000000048 .LC2
+     /tmp/ccggYc3n.s:80     .text:0000000000000070 .L0 
+     /tmp/ccggYc3n.s:104    .rodata.str1.8:0000000000000070 .LC3
+     /tmp/ccggYc3n.s:133    .text:00000000000000b0 .L0 
+     /tmp/ccggYc3n.s:148    .text:00000000000000cc .L0 
+     /tmp/ccggYc3n.s:107    .rodata.str1.8:0000000000000098 .LC4
+     /tmp/ccggYc3n.s:154    .text:00000000000000e0 .L0 
+     /tmp/ccggYc3n.s:110    .rodata.str1.8:00000000000000b8 .LC5
+     /tmp/ccggYc3n.s:170    .text:0000000000000100 .L0 
+     /tmp/ccggYc3n.s:228    .rodata.str1.8:0000000000000110 .LC7
+     /tmp/ccggYc3n.s:283    .text:0000000000000188 .L0 
+     /tmp/ccggYc3n.s:234    .rodata.str1.8:0000000000000178 .LC9
+     /tmp/ccggYc3n.s:325    .text:00000000000001dc .L0 
+     /tmp/ccggYc3n.s:225    .rodata.str1.8:00000000000000e0 .LC6
+     /tmp/ccggYc3n.s:363    .text:0000000000000228 .L0 
+     /tmp/ccggYc3n.s:231    .rodata.str1.8:0000000000000140 .LC8
+     /tmp/ccggYc3n.s:373    .text:000000000000023c .L0 
+     /tmp/ccggYc3n.s:237    .rodata.str1.8:00000000000001b8 .LC10
+     /tmp/ccggYc3n.s:383    .text:0000000000000250 .L0 
+     /tmp/ccggYc3n.s:243    .rodata.str1.8:0000000000000228 .LC12
+     /tmp/ccggYc3n.s:429    .text:00000000000002a4 .L0 
+     /tmp/ccggYc3n.s:246    .rodata.str1.8:0000000000000260 .LC13
+     /tmp/ccggYc3n.s:434    .text:00000000000002b4 .L0 
+     /tmp/ccggYc3n.s:240    .rodata.str1.8:00000000000001e8 .LC11
+     /tmp/ccggYc3n.s:462    .text:00000000000002e0 .L0 
+     /tmp/ccggYc3n.s:472    .rodata.str1.8:0000000000000298 .LC14
+     /tmp/ccggYc3n.s:512    .text:0000000000000308 .L0 
+     /tmp/ccggYc3n.s:524    .text:0000000000000324 .L0 
+     /tmp/ccggYc3n.s:478    .rodata.str1.8:00000000000002e0 .LC16
+     /tmp/ccggYc3n.s:538    .text:0000000000000348 .L0 
+     /tmp/ccggYc3n.s:545    .text:000000000000035c .L0 
+     /tmp/ccggYc3n.s:484    .rodata.str1.8:0000000000000328 .LC18
+     /tmp/ccggYc3n.s:557    .text:000000000000037c .L0 
+     /tmp/ccggYc3n.s:487    .rodata.str1.8:0000000000000348 .LC19
+     /tmp/ccggYc3n.s:563    .text:000000000000038c .L0 
+     /tmp/ccggYc3n.s:475    .rodata.str1.8:00000000000002b8 .LC15
+GAS LISTING /tmp/ccggYc3n.s 			page 29
+
+
+     /tmp/ccggYc3n.s:571    .text:00000000000003a0 .L0 
+     /tmp/ccggYc3n.s:481    .rodata.str1.8:0000000000000300 .LC17
+     /tmp/ccggYc3n.s:601    .text:00000000000003d8 .L0 
+     /tmp/ccggYc3n.s:616    .text:00000000000003f4 .L0 
+     /tmp/ccggYc3n.s:621    .text:0000000000000404 .L0 
+     /tmp/ccggYc3n.s:490    .rodata.str1.8:0000000000000378 .LC20
+     /tmp/ccggYc3n.s:626    .text:0000000000000410 .L0 
+     /tmp/ccggYc3n.s:654    .text:000000000000043c .L0 
+     /tmp/ccggYc3n.s:677    .text:0000000000000454 .L0 
+     /tmp/ccggYc3n.s:76     .text:0000000000000070 .L2
+     /tmp/ccggYc3n.s:47     .text:0000000000000028 .L3
+     /tmp/ccggYc3n.s:166    .text:0000000000000100 .L6
+     /tmp/ccggYc3n.s:142    .text:00000000000000c4 .L7
+     /tmp/ccggYc3n.s:359    .text:0000000000000228 .L24
+     /tmp/ccggYc3n.s:370    .text:000000000000023c .L25
+     /tmp/ccggYc3n.s:380    .text:0000000000000250 .L26
+     /tmp/ccggYc3n.s:390    .text:0000000000000264 .L20
+     /tmp/ccggYc3n.s:339    .text:0000000000000200 .L15
+     /tmp/ccggYc3n.s:437    .text:00000000000002c4 .L11
+     /tmp/ccggYc3n.s:415    .text:0000000000000294 .L21
+     /tmp/ccggYc3n.s:451    .text:00000000000002d8 .L22
+     /tmp/ccggYc3n.s:395    .text:0000000000000268 .L16
+     /tmp/ccggYc3n.s:458    .text:00000000000002e0 .L27
+     /tmp/ccggYc3n.s:419    .text:0000000000000298 .L17
+     /tmp/ccggYc3n.s:568    .text:00000000000003a0 .L29
+     /tmp/ccggYc3n.s:597    .text:00000000000003d8 .L32
+     /tmp/ccggYc3n.s:612    .text:00000000000003f4 .L36
+     /tmp/ccggYc3n.s:583    .text:00000000000003c4 .L28
+     /tmp/ccggYc3n.s:607    .text:00000000000003ec .L34
+     /tmp/ccggYc3n.s:681    .text:0000000000000468 .L39
+     /tmp/ccggYc3n.s:2487   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+     /tmp/ccggYc3n.s:4080   .debug_str:0000000000000a1b .LASF191
+     /tmp/ccggYc3n.s:3848   .debug_str:0000000000000304 .LASF192
+     /tmp/ccggYc3n.s:4038   .debug_str:00000000000008ee .LASF193
+     /tmp/ccggYc3n.s:5      .text:0000000000000000 .Ltext0
+     /tmp/ccggYc3n.s:705    .text:0000000000000474 .Letext0
+     /tmp/ccggYc3n.s:3754   .debug_line:0000000000000000 .Ldebug_line0
+     /tmp/ccggYc3n.s:3882   .debug_str:000000000000043d .LASF0
+     /tmp/ccggYc3n.s:3910   .debug_str:0000000000000514 .LASF1
+     /tmp/ccggYc3n.s:4014   .debug_str:000000000000083d .LASF2
+     /tmp/ccggYc3n.s:4024   .debug_str:0000000000000885 .LASF4
+     /tmp/ccggYc3n.s:3892   .debug_str:0000000000000474 .LASF3
+     /tmp/ccggYc3n.s:3770   .debug_str:000000000000007a .LASF5
+     /tmp/ccggYc3n.s:3982   .debug_str:000000000000076f .LASF6
+     /tmp/ccggYc3n.s:3902   .debug_str:00000000000004cf .LASF7
+     /tmp/ccggYc3n.s:3858   .debug_str:000000000000034d .LASF8
+     /tmp/ccggYc3n.s:3866   .debug_str:000000000000039a .LASF9
+     /tmp/ccggYc3n.s:3792   .debug_str:0000000000000129 .LASF10
+     /tmp/ccggYc3n.s:3846   .debug_str:00000000000002f5 .LASF11
+     /tmp/ccggYc3n.s:3808   .debug_str:000000000000019f .LASF12
+     /tmp/ccggYc3n.s:3790   .debug_str:0000000000000119 .LASF13
+     /tmp/ccggYc3n.s:4054   .debug_str:0000000000000981 .LASF14
+     /tmp/ccggYc3n.s:3832   .debug_str:0000000000000254 .LASF15
+     /tmp/ccggYc3n.s:4042   .debug_str:000000000000091f .LASF16
+     /tmp/ccggYc3n.s:3898   .debug_str:00000000000004a7 .LASF30
+     /tmp/ccggYc3n.s:3794   .debug_str:0000000000000138 .LASF17
+     /tmp/ccggYc3n.s:3778   .debug_str:00000000000000c6 .LASF18
+GAS LISTING /tmp/ccggYc3n.s 			page 30
+
+
+     /tmp/ccggYc3n.s:3908   .debug_str:000000000000050f .LASF19
+     /tmp/ccggYc3n.s:3980   .debug_str:000000000000075f .LASF29
+     /tmp/ccggYc3n.s:3894   .debug_str:0000000000000486 .LASF35
+     /tmp/ccggYc3n.s:4018   .debug_str:0000000000000858 .LASF194
+     /tmp/ccggYc3n.s:4106   .debug_str:0000000000000b7d .LASF195
+     /tmp/ccggYc3n.s:3802   .debug_str:000000000000016b .LASF20
+     /tmp/ccggYc3n.s:4096   .debug_str:0000000000000b44 .LASF21
+     /tmp/ccggYc3n.s:3996   .debug_str:00000000000007d6 .LASF22
+     /tmp/ccggYc3n.s:4132   .debug_str:0000000000000c1e .LASF54
+     /tmp/ccggYc3n.s:3942   .debug_str:000000000000060b .LASF56
+     /tmp/ccggYc3n.s:3940   .debug_str:0000000000000601 .LASF23
+     /tmp/ccggYc3n.s:3774   .debug_str:000000000000008c .LASF25
+     /tmp/ccggYc3n.s:4066   .debug_str:00000000000009c9 .LASF24
+     /tmp/ccggYc3n.s:3844   .debug_str:00000000000002d4 .LASF26
+     /tmp/ccggYc3n.s:3890   .debug_str:000000000000046a .LASF27
+     /tmp/ccggYc3n.s:3876   .debug_str:00000000000003f1 .LASF28
+     /tmp/ccggYc3n.s:3944   .debug_str:000000000000062f .LASF60
+     /tmp/ccggYc3n.s:4032   .debug_str:00000000000008ab .LASF62
+     /tmp/ccggYc3n.s:3776   .debug_str:00000000000000ad .LASF50
+     /tmp/ccggYc3n.s:3948   .debug_str:000000000000065b .LASF80
+     /tmp/ccggYc3n.s:4142   .debug_str:0000000000000c6c .LASF82
+     /tmp/ccggYc3n.s:3798   .debug_str:0000000000000150 .LASF31
+     /tmp/ccggYc3n.s:4026   .debug_str:000000000000088c .LASF32
+     /tmp/ccggYc3n.s:3766   .debug_str:0000000000000064 .LASF33
+     /tmp/ccggYc3n.s:3956   .debug_str:00000000000006a0 .LASF34
+     /tmp/ccggYc3n.s:3758   .debug_str:0000000000000012 .LASF36
+     /tmp/ccggYc3n.s:4004   .debug_str:0000000000000809 .LASF37
+     /tmp/ccggYc3n.s:3806   .debug_str:0000000000000189 .LASF38
+     /tmp/ccggYc3n.s:4068   .debug_str:00000000000009d2 .LASF39
+     /tmp/ccggYc3n.s:3950   .debug_str:000000000000066c .LASF40
+     /tmp/ccggYc3n.s:3782   .debug_str:00000000000000d3 .LASF41
+     /tmp/ccggYc3n.s:4098   .debug_str:0000000000000b49 .LASF42
+     /tmp/ccggYc3n.s:3814   .debug_str:00000000000001d7 .LASF43
+     /tmp/ccggYc3n.s:3926   .debug_str:000000000000058d .LASF44
+     /tmp/ccggYc3n.s:4128   .debug_str:0000000000000c0c .LASF45
+     /tmp/ccggYc3n.s:4058   .debug_str:00000000000009a2 .LASF46
+     /tmp/ccggYc3n.s:4070   .debug_str:00000000000009dd .LASF47
+     /tmp/ccggYc3n.s:3842   .debug_str:00000000000002be .LASF48
+     /tmp/ccggYc3n.s:3984   .debug_str:0000000000000782 .LASF49
+     /tmp/ccggYc3n.s:3812   .debug_str:00000000000001bd .LASF51
+     /tmp/ccggYc3n.s:4052   .debug_str:0000000000000974 .LASF52
+     /tmp/ccggYc3n.s:4108   .debug_str:0000000000000b99 .LASF53
+     /tmp/ccggYc3n.s:3974   .debug_str:0000000000000731 .LASF196
+     /tmp/ccggYc3n.s:3838   .debug_str:0000000000000298 .LASF55
+     /tmp/ccggYc3n.s:3788   .debug_str:00000000000000fd .LASF57
+     /tmp/ccggYc3n.s:4092   .debug_str:0000000000000b28 .LASF58
+     /tmp/ccggYc3n.s:3868   .debug_str:00000000000003a8 .LASF59
+     /tmp/ccggYc3n.s:3914   .debug_str:0000000000000533 .LASF61
+     /tmp/ccggYc3n.s:4086   .debug_str:0000000000000afe .LASF63
+     /tmp/ccggYc3n.s:4078   .debug_str:0000000000000a13 .LASF64
+     /tmp/ccggYc3n.s:4150   .debug_str:0000000000000c9e .LASF65
+     /tmp/ccggYc3n.s:3862   .debug_str:0000000000000372 .LASF66
+     /tmp/ccggYc3n.s:3786   .debug_str:00000000000000ed .LASF67
+     /tmp/ccggYc3n.s:3854   .debug_str:000000000000032a .LASF68
+     /tmp/ccggYc3n.s:3762   .debug_str:000000000000002c .LASF69
+     /tmp/ccggYc3n.s:3932   .debug_str:00000000000005c2 .LASF70
+     /tmp/ccggYc3n.s:4040   .debug_str:000000000000090c .LASF71
+GAS LISTING /tmp/ccggYc3n.s 			page 31
+
+
+     /tmp/ccggYc3n.s:4016   .debug_str:000000000000084b .LASF72
+     /tmp/ccggYc3n.s:4082   .debug_str:0000000000000adf .LASF197
+     /tmp/ccggYc3n.s:3760   .debug_str:0000000000000027 .LASF73
+     /tmp/ccggYc3n.s:4144   .debug_str:0000000000000c85 .LASF74
+     /tmp/ccggYc3n.s:4094   .debug_str:0000000000000b3c .LASF75
+     /tmp/ccggYc3n.s:4148   .debug_str:0000000000000c99 .LASF76
+     /tmp/ccggYc3n.s:4064   .debug_str:00000000000009c0 .LASF77
+     /tmp/ccggYc3n.s:3968   .debug_str:00000000000006f3 .LASF78
+     /tmp/ccggYc3n.s:3780   .debug_str:00000000000000cb .LASF79
+     /tmp/ccggYc3n.s:3784   .debug_str:00000000000000df .LASF84
+     /tmp/ccggYc3n.s:3916   .debug_str:0000000000000539 .LASF86
+     /tmp/ccggYc3n.s:3810   .debug_str:00000000000001af .LASF81
+     /tmp/ccggYc3n.s:3764   .debug_str:000000000000003c .LASF83
+     /tmp/ccggYc3n.s:3818   .debug_str:00000000000001f0 .LASF85
+     /tmp/ccggYc3n.s:3800   .debug_str:0000000000000158 .LASF87
+     /tmp/ccggYc3n.s:4034   .debug_str:00000000000008ca .LASF198
+     /tmp/ccggYc3n.s:4022   .debug_str:000000000000087a .LASF88
+     /tmp/ccggYc3n.s:4136   .debug_str:0000000000000c3f .LASF89
+     /tmp/ccggYc3n.s:4112   .debug_str:0000000000000bc0 .LASF90
+     /tmp/ccggYc3n.s:4072   .debug_str:00000000000009e8 .LASF91
+     /tmp/ccggYc3n.s:4008   .debug_str:0000000000000824 .LASF92
+     /tmp/ccggYc3n.s:4116   .debug_str:0000000000000bd3 .LASF93
+     /tmp/ccggYc3n.s:3870   .debug_str:00000000000003cf .LASF94
+     /tmp/ccggYc3n.s:3878   .debug_str:0000000000000418 .LASF95
+     /tmp/ccggYc3n.s:4100   .debug_str:0000000000000b60 .LASF96
+     /tmp/ccggYc3n.s:3930   .debug_str:00000000000005ad .LASF97
+     /tmp/ccggYc3n.s:4010   .debug_str:0000000000000829 .LASF98
+     /tmp/ccggYc3n.s:3970   .debug_str:00000000000006fb .LASF99
+     /tmp/ccggYc3n.s:3998   .debug_str:00000000000007db .LASF100
+     /tmp/ccggYc3n.s:4000   .debug_str:00000000000007e2 .LASF101
+     /tmp/ccggYc3n.s:3958   .debug_str:00000000000006aa .LASF102
+     /tmp/ccggYc3n.s:3904   .debug_str:00000000000004e2 .LASF103
+     /tmp/ccggYc3n.s:4130   .debug_str:0000000000000c16 .LASF104
+     /tmp/ccggYc3n.s:4050   .debug_str:0000000000000960 .LASF105
+     /tmp/ccggYc3n.s:3952   .debug_str:0000000000000683 .LASF106
+     /tmp/ccggYc3n.s:3850   .debug_str:0000000000000311 .LASF107
+     /tmp/ccggYc3n.s:3922   .debug_str:000000000000057f .LASF108
+     /tmp/ccggYc3n.s:4002   .debug_str:00000000000007f5 .LASF109
+     /tmp/ccggYc3n.s:4152   .debug_str:0000000000000cab .LASF110
+     /tmp/ccggYc3n.s:3886   .debug_str:0000000000000450 .LASF111
+     /tmp/ccggYc3n.s:4048   .debug_str:0000000000000959 .LASF112
+     /tmp/ccggYc3n.s:4028   .debug_str:0000000000000891 .LASF113
+     /tmp/ccggYc3n.s:4030   .debug_str:00000000000008a4 .LASF114
+     /tmp/ccggYc3n.s:3796   .debug_str:000000000000013d .LASF115
+     /tmp/ccggYc3n.s:3824   .debug_str:000000000000021e .LASF116
+     /tmp/ccggYc3n.s:3874   .debug_str:00000000000003df .LASF117
+     /tmp/ccggYc3n.s:3884   .debug_str:000000000000044a .LASF118
+     /tmp/ccggYc3n.s:3816   .debug_str:00000000000001de .LASF119
+     /tmp/ccggYc3n.s:4122   .debug_str:0000000000000bef .LASF120
+     /tmp/ccggYc3n.s:3976   .debug_str:0000000000000736 .LASF121
+     /tmp/ccggYc3n.s:3896   .debug_str:00000000000004a2 .LASF122
+     /tmp/ccggYc3n.s:4076   .debug_str:0000000000000a02 .LASF123
+     /tmp/ccggYc3n.s:3772   .debug_str:0000000000000081 .LASF124
+     /tmp/ccggYc3n.s:4020   .debug_str:0000000000000862 .LASF125
+     /tmp/ccggYc3n.s:4012   .debug_str:0000000000000832 .LASF126
+     /tmp/ccggYc3n.s:3822   .debug_str:0000000000000206 .LASF127
+     /tmp/ccggYc3n.s:4118   .debug_str:0000000000000bd9 .LASF128
+GAS LISTING /tmp/ccggYc3n.s 			page 32
+
+
+     /tmp/ccggYc3n.s:4138   .debug_str:0000000000000c4a .LASF129
+     /tmp/ccggYc3n.s:4114   .debug_str:0000000000000bc9 .LASF130
+     /tmp/ccggYc3n.s:3938   .debug_str:00000000000005eb .LASF131
+     /tmp/ccggYc3n.s:4126   .debug_str:0000000000000bfd .LASF132
+     /tmp/ccggYc3n.s:3864   .debug_str:000000000000037e .LASF133
+     /tmp/ccggYc3n.s:3986   .debug_str:000000000000078f .LASF134
+     /tmp/ccggYc3n.s:3900   .debug_str:00000000000004ad .LASF135
+     /tmp/ccggYc3n.s:3856   .debug_str:0000000000000336 .LASF136
+     /tmp/ccggYc3n.s:3946   .debug_str:0000000000000637 .LASF137
+     /tmp/ccggYc3n.s:4056   .debug_str:000000000000098d .LASF138
+     /tmp/ccggYc3n.s:3960   .debug_str:00000000000006b1 .LASF139
+     /tmp/ccggYc3n.s:3912   .debug_str:0000000000000527 .LASF140
+     /tmp/ccggYc3n.s:3966   .debug_str:00000000000006e9 .LASF141
+     /tmp/ccggYc3n.s:3840   .debug_str:00000000000002a9 .LASF142
+     /tmp/ccggYc3n.s:3820   .debug_str:00000000000001f9 .LASF143
+     /tmp/ccggYc3n.s:3804   .debug_str:0000000000000174 .LASF144
+     /tmp/ccggYc3n.s:4088   .debug_str:0000000000000b0e .LASF145
+     /tmp/ccggYc3n.s:4090   .debug_str:0000000000000b1b .LASF146
+     /tmp/ccggYc3n.s:637    .text:0000000000000424 .LFB61
+     /tmp/ccggYc3n.s:689    .text:0000000000000474 .LFE61
+     /tmp/ccggYc3n.s:3962   .debug_str:00000000000006d3 .LASF147
+     /tmp/ccggYc3n.s:656    .text:0000000000000444 .LBB22
+     /tmp/ccggYc3n.s:668    .text:0000000000000448 .LBE22
+     /tmp/ccggYc3n.s:651    .text:000000000000043c .LVL74
+     /tmp/ccggYc3n.s:672    .text:0000000000000450 .LVL77
+     /tmp/ccggYc3n.s:680    .text:0000000000000468 .LVL78
+     /tmp/ccggYc3n.s:686    .text:0000000000000470 .LVL79
+     /tmp/ccggYc3n.s:3936   .debug_str:00000000000005db .LASF148
+     /tmp/ccggYc3n.s:3920   .debug_str:0000000000000569 .LASF149
+     /tmp/ccggYc3n.s:196    .text:000000000000012c .LFB60
+     /tmp/ccggYc3n.s:221    .text:0000000000000154 .LFE60
+     /tmp/ccggYc3n.s:210    .text:0000000000000144 .LVL23
+     /tmp/ccggYc3n.s:3860   .debug_str:000000000000035d .LASF150
+     /tmp/ccggYc3n.s:3828   .debug_str:0000000000000235 .LASF151
+     /tmp/ccggYc3n.s:497    .text:00000000000002f4 .LFB59
+     /tmp/ccggYc3n.s:631    .text:0000000000000424 .LFE59
+     /tmp/ccggYc3n.s:4060   .debug_str:00000000000009b6 .LASF152
+     /tmp/ccggYc3n.s:4062   .debug_str:00000000000009bb .LASF153
+     /tmp/ccggYc3n.s:3872   .debug_str:00000000000003da .LASF154
+     /tmp/ccggYc3n.s:3539   .debug_loc:0000000000000000 .LLST13
+     /tmp/ccggYc3n.s:3830   .debug_str:000000000000024f .LASF155
+     /tmp/ccggYc3n.s:3550   .debug_loc:0000000000000036 .LLST14
+     /tmp/ccggYc3n.s:514    .text:0000000000000318 .LVL56
+     /tmp/ccggYc3n.s:527    .text:0000000000000338 .LVL57
+     /tmp/ccggYc3n.s:541    .text:0000000000000358 .LVL60
+     /tmp/ccggYc3n.s:548    .text:0000000000000370 .LVL61
+     /tmp/ccggYc3n.s:560    .text:000000000000038c .LVL63
+     /tmp/ccggYc3n.s:565    .text:000000000000039c .LVL64
+     /tmp/ccggYc3n.s:574    .text:00000000000003b0 .LVL67
+     /tmp/ccggYc3n.s:581    .text:00000000000003c4 .LVL68
+     /tmp/ccggYc3n.s:604    .text:00000000000003e8 .LVL71
+     /tmp/ccggYc3n.s:611    .text:00000000000003f4 .LVL72
+     /tmp/ccggYc3n.s:628    .text:0000000000000420 .LVL73
+     /tmp/ccggYc3n.s:3928   .debug_str:000000000000059e .LASF156
+     /tmp/ccggYc3n.s:4134   .debug_str:0000000000000c2a .LASF157
+     /tmp/ccggYc3n.s:117    .text:000000000000009c .LFB58
+     /tmp/ccggYc3n.s:190    .text:000000000000012c .LFE58
+GAS LISTING /tmp/ccggYc3n.s 			page 33
+
+
+     /tmp/ccggYc3n.s:3561   .debug_loc:000000000000006c .LLST2
+     /tmp/ccggYc3n.s:138    .text:00000000000000c0 .LBB16
+     /tmp/ccggYc3n.s:167    .text:0000000000000100 .LBE16
+     /tmp/ccggYc3n.s:3575   .debug_loc:00000000000000a5 .LLST3
+     /tmp/ccggYc3n.s:156    .text:00000000000000f0 .LVL16
+     /tmp/ccggYc3n.s:160    .text:00000000000000f8 .LVL17
+     /tmp/ccggYc3n.s:136    .text:00000000000000c0 .LVL14
+     /tmp/ccggYc3n.s:172    .text:0000000000000110 .LVL20
+     /tmp/ccggYc3n.s:176    .text:0000000000000118 .LVL21
+     /tmp/ccggYc3n.s:3826   .debug_str:0000000000000224 .LASF158
+     /tmp/ccggYc3n.s:3918   .debug_str:0000000000000552 .LASF159
+     /tmp/ccggYc3n.s:21     .text:0000000000000000 .LFB57
+     /tmp/ccggYc3n.s:100    .text:000000000000009c .LFE57
+     /tmp/ccggYc3n.s:3591   .debug_loc:00000000000000ef .LLST0
+     /tmp/ccggYc3n.s:43     .text:0000000000000024 .LBB15
+     /tmp/ccggYc3n.s:77     .text:0000000000000070 .LBE15
+     /tmp/ccggYc3n.s:3605   .debug_loc:0000000000000128 .LLST1
+     /tmp/ccggYc3n.s:61     .text:0000000000000054 .LVL4
+     /tmp/ccggYc3n.s:66     .text:0000000000000060 .LVL5
+     /tmp/ccggYc3n.s:70     .text:0000000000000068 .LVL6
+     /tmp/ccggYc3n.s:41     .text:0000000000000024 .LVL2
+     /tmp/ccggYc3n.s:82     .text:0000000000000080 .LVL9
+     /tmp/ccggYc3n.s:86     .text:0000000000000088 .LVL10
+     /tmp/ccggYc3n.s:3906   .debug_str:00000000000004f5 .LASF160
+     /tmp/ccggYc3n.s:3834   .debug_str:000000000000026a .LASF161
+     /tmp/ccggYc3n.s:253    .text:0000000000000154 .LFB56
+     /tmp/ccggYc3n.s:468    .text:00000000000002f4 .LFE56
+     /tmp/ccggYc3n.s:3621   .debug_loc:0000000000000172 .LLST4
+     /tmp/ccggYc3n.s:3992   .debug_str:00000000000007ba .LASF162
+     /tmp/ccggYc3n.s:3632   .debug_loc:00000000000001a8 .LLST5
+     /tmp/ccggYc3n.s:4146   .debug_str:0000000000000c8b .LASF163
+     /tmp/ccggYc3n.s:3643   .debug_loc:00000000000001de .LLST6
+     /tmp/ccggYc3n.s:3661   .debug_loc:000000000000022a .LLST7
+     /tmp/ccggYc3n.s:4120   .debug_str:0000000000000be3 .LASF164
+     /tmp/ccggYc3n.s:3680   .debug_loc:0000000000000286 .LLST8
+     /tmp/ccggYc3n.s:336    .text:00000000000001fc .LBB19
+     /tmp/ccggYc3n.s:360    .text:0000000000000228 .LBE19
+     /tmp/ccggYc3n.s:3691   .debug_loc:00000000000002bc .LLST11
+     /tmp/ccggYc3n.s:3746   .debug_ranges:0000000000000000 .Ldebug_ranges0
+     /tmp/ccggYc3n.s:3702   .debug_loc:00000000000002f2 .LLST12
+     /tmp/ccggYc3n.s:291    .text:00000000000001a4 .LBB17
+     /tmp/ccggYc3n.s:313    .text:00000000000001d0 .LBE17
+     /tmp/ccggYc3n.s:3717   .debug_loc:000000000000033b .LLST9
+     /tmp/ccggYc3n.s:3726   .debug_loc:0000000000000361 .LLST10
+     /tmp/ccggYc3n.s:270    .text:0000000000000174 .LVL24
+     /tmp/ccggYc3n.s:280    .text:0000000000000188 .LVL26
+     /tmp/ccggYc3n.s:285    .text:0000000000000198 .LVL27
+     /tmp/ccggYc3n.s:290    .text:00000000000001a4 .LVL28
+     /tmp/ccggYc3n.s:322    .text:00000000000001dc .LVL31
+     /tmp/ccggYc3n.s:327    .text:00000000000001ec .LVL32
+     /tmp/ccggYc3n.s:333    .text:00000000000001f8 .LVL33
+     /tmp/ccggYc3n.s:366    .text:0000000000000238 .LVL38
+     /tmp/ccggYc3n.s:376    .text:000000000000024c .LVL41
+     /tmp/ccggYc3n.s:386    .text:0000000000000260 .LVL44
+     /tmp/ccggYc3n.s:424    .text:00000000000002a0 .LVL50
+     /tmp/ccggYc3n.s:431    .text:00000000000002b4 .LVL51
+     /tmp/ccggYc3n.s:436    .text:00000000000002c4 .LVL52
+GAS LISTING /tmp/ccggYc3n.s 			page 34
+
+
+     /tmp/ccggYc3n.s:464    .text:00000000000002f0 .LVL55
+     /tmp/ccggYc3n.s:3852   .debug_str:0000000000000325 .LASF165
+     /tmp/ccggYc3n.s:3768   .debug_str:0000000000000070 .LASF166
+     /tmp/ccggYc3n.s:3954   .debug_str:000000000000068b .LASF167
+     /tmp/ccggYc3n.s:4084   .debug_str:0000000000000af3 .LASF169
+     /tmp/ccggYc3n.s:3994   .debug_str:00000000000007c1 .LASF168
+     /tmp/ccggYc3n.s:3924   .debug_str:0000000000000587 .LASF170
+     /tmp/ccggYc3n.s:3978   .debug_str:0000000000000747 .LASF171
+     /tmp/ccggYc3n.s:4036   .debug_str:00000000000008db .LASF173
+     /tmp/ccggYc3n.s:3972   .debug_str:0000000000000710 .LASF172
+     /tmp/ccggYc3n.s:4104   .debug_str:0000000000000b6f .LASF174
+     /tmp/ccggYc3n.s:4074   .debug_str:00000000000009ed .LASF175
+     /tmp/ccggYc3n.s:4006   .debug_str:0000000000000814 .LASF176
+     /tmp/ccggYc3n.s:3880   .debug_str:0000000000000430 .LASF177
+     /tmp/ccggYc3n.s:3988   .debug_str:00000000000007a4 .LASF178
+     /tmp/ccggYc3n.s:4046   .debug_str:0000000000000946 .LASF179
+     /tmp/ccggYc3n.s:4140   .debug_str:0000000000000c60 .LASF180
+     /tmp/ccggYc3n.s:3836   .debug_str:0000000000000289 .LASF181
+     /tmp/ccggYc3n.s:4124   .debug_str:0000000000000bf4 .LASF182
+     /tmp/ccggYc3n.s:4044   .debug_str:0000000000000935 .LASF183
+     /tmp/ccggYc3n.s:3934   .debug_str:00000000000005cf .LASF184
+     /tmp/ccggYc3n.s:3756   .debug_str:0000000000000000 .LASF185
+     /tmp/ccggYc3n.s:3990   .debug_str:00000000000007ad .LASF186
+     /tmp/ccggYc3n.s:4102   .debug_str:0000000000000b69 .LASF187
+     /tmp/ccggYc3n.s:4110   .debug_str:0000000000000bb9 .LASF188
+     /tmp/ccggYc3n.s:3888   .debug_str:0000000000000464 .LASF189
+     /tmp/ccggYc3n.s:3964   .debug_str:00000000000006e2 .LASF190
+     /tmp/ccggYc3n.s:529    .text:000000000000033c .LVL58
+     /tmp/ccggYc3n.s:539    .text:0000000000000350 .LVL59
+     /tmp/ccggYc3n.s:567    .text:00000000000003a0 .LVL65
+     /tmp/ccggYc3n.s:572    .text:00000000000003a8 .LVL66
+     /tmp/ccggYc3n.s:558    .text:0000000000000384 .LVL62
+     /tmp/ccggYc3n.s:596    .text:00000000000003d8 .LVL69
+     /tmp/ccggYc3n.s:602    .text:00000000000003e0 .LVL70
+     /tmp/ccggYc3n.s:120    .text:000000000000009c .LVL12
+     /tmp/ccggYc3n.s:134    .text:00000000000000b8 .LVL13
+     /tmp/ccggYc3n.s:141    .text:00000000000000c4 .LVL15
+     /tmp/ccggYc3n.s:163    .text:00000000000000fc .LVL18
+     /tmp/ccggYc3n.s:165    .text:0000000000000100 .LVL19
+     /tmp/ccggYc3n.s:185    .text:0000000000000124 .LVL22
+     /tmp/ccggYc3n.s:25     .text:0000000000000000 .LVL0
+     /tmp/ccggYc3n.s:39     .text:000000000000001c .LVL1
+     /tmp/ccggYc3n.s:46     .text:0000000000000028 .LVL3
+     /tmp/ccggYc3n.s:73     .text:000000000000006c .LVL7
+     /tmp/ccggYc3n.s:75     .text:0000000000000070 .LVL8
+     /tmp/ccggYc3n.s:95     .text:0000000000000094 .LVL11
+     /tmp/ccggYc3n.s:273    .text:000000000000017c .LVL25
+     /tmp/ccggYc3n.s:358    .text:0000000000000228 .LVL36
+     /tmp/ccggYc3n.s:364    .text:0000000000000230 .LVL37
+     /tmp/ccggYc3n.s:311    .text:00000000000001d0 .LVL29
+     /tmp/ccggYc3n.s:369    .text:000000000000023c .LVL39
+     /tmp/ccggYc3n.s:374    .text:0000000000000244 .LVL40
+     /tmp/ccggYc3n.s:379    .text:0000000000000250 .LVL42
+     /tmp/ccggYc3n.s:450    .text:00000000000002d8 .LVL53
+     /tmp/ccggYc3n.s:384    .text:0000000000000258 .LVL43
+     /tmp/ccggYc3n.s:389    .text:0000000000000264 .LVL45
+     /tmp/ccggYc3n.s:457    .text:00000000000002e0 .LVL54
+GAS LISTING /tmp/ccggYc3n.s 			page 35
+
+
+     /tmp/ccggYc3n.s:420    .text:0000000000000298 .LVL49
+     /tmp/ccggYc3n.s:340    .text:0000000000000200 .LVL34
+     /tmp/ccggYc3n.s:356    .text:0000000000000224 .LVL35
+     /tmp/ccggYc3n.s:394    .text:0000000000000268 .LVL46
+     /tmp/ccggYc3n.s:412    .text:0000000000000290 .LVL47
+     /tmp/ccggYc3n.s:414    .text:0000000000000294 .LVL48
+     /tmp/ccggYc3n.s:714    .debug_info:0000000000000000 .Ldebug_info0
+     /tmp/ccggYc3n.s:391    .text:0000000000000264 .LBB20
+     /tmp/ccggYc3n.s:416    .text:0000000000000294 .LBE20
+     /tmp/ccggYc3n.s:453    .text:00000000000002d8 .LBB21
+     /tmp/ccggYc3n.s:459    .text:00000000000002e0 .LBE21
+
+UNDEFINED SYMBOLS
+_Z11printStringPKc
+_Z12printIntegerm
+_Z15thread_dispatchv
+_Z11thread_exitv
+_Z8userMainv
+_Znwm
+_ZdlPv
+_Znam
+_ZdaPv
+_Z13thread_createPP3TCBPFvPvES2_
+_Z8printIntiii
+_ZN15MemoryAllocator7initMemEv
+_ZN5Riscv14supervisorTrapEv
+_Z18create_main_threadv

@@ -1,0 +1,110 @@
+//
+// Created by marko on 20.4.22..
+//
+
+#ifndef OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_TCB_HPP
+#define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_TCB_HPP
+
+
+#include "scheduler.hpp"
+#include "syscall_cpp.hpp"
+#include "syscall_c.hpp"
+#include "MemoryAllocator.hpp"
+#include "print.hpp"
+
+// Thread Control Block
+class TCB
+{
+public:
+    ~TCB() { delete[] stack; }
+
+    bool isStarted() const {return started;}
+
+    void setStarted(bool val){started= val;}
+
+    bool isFinished() const { return finished; }
+
+    void setFinished(bool value) { finished = value; }
+
+    bool isMain(){return main;}
+    bool isBlocked(){return blocked;}
+
+    void setBlocked(bool val){blocked=val;}
+
+    static void thread_start(TCB* ThreadToStart);
+
+
+
+    using Body = void (*)(void*);
+
+    static TCB *createThread(Body body,void* arg);
+    static TCB* createMainThread();
+    static TCB* createThreadNoStart(Body body,void* arg);
+
+    static void yield();
+
+    static TCB *running;
+
+    void* operator new(size_t size) {
+        return MemoryAllocator::mem_alloc(size);
+    }
+    void* operator new[](size_t size) {
+        return MemoryAllocator::mem_alloc(size);
+    }
+
+    void operator delete(void *ptr) {
+        MemoryAllocator::mem_free(ptr);
+    }
+    void operator delete[](void *ptr) {
+        MemoryAllocator::mem_free(ptr);
+    }
+
+private:
+    TCB(Body body, void* arg)
+            : body(body),
+              stack(body != nullptr ? new uint64[STACK_SIZE] : nullptr),
+              context({(uint64) &threadWrapper,
+                       stack != nullptr ? (uint64) &stack[STACK_SIZE] : 0
+                      }),
+              main(body == nullptr),
+              finished(false),
+              blocked(false),
+              started(false),
+              arg(arg)
+    {
+
+
+    }
+
+    struct Context
+    {
+        uint64 ra;
+        uint64 sp;
+    };
+
+
+    Body body;
+    uint64 *stack;
+    Context context;
+    bool main;
+    bool finished;
+    bool blocked;
+    bool started;
+    void* arg;
+
+    friend class Riscv;
+
+    static void threadWrapper();
+
+
+    static void contextSwitch(Context *oldContext, Context *runningContext);
+
+    static void dispatch();
+
+    static uint64 timeSliceCounter;
+
+    static uint64 constexpr STACK_SIZE = 1024;
+    static uint64 constexpr TIME_SLICE = 2;
+};
+
+#endif //OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_TCB_HPP
